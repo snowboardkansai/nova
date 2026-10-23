@@ -1,0 +1,3617 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="standard">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nova Drill Control (lokal)</title>
+    <style>
+/* --- THEME DEFINITIONS --- */
+:root { 
+    --trans-speed: 0.3s; 
+}
+
+[data-theme="standard"] { 
+    --primary: #ff6b4a; 
+    --primary-dim: rgba(255, 107, 74, 0.1); 
+    --bg: #f5f6fa; 
+    --surface: #ffffff; 
+    --card-bg: #e4e7eb; 
+    --text: #2d3436; 
+    --text-light: #636e72; 
+    --border: #dfe6e9; 
+    --shadow: rgba(0,0,0,0.05); 
+    --danger: #d63031; 
+    --btn-text: #4a4a4a; 
+    --menu-bg: rgba(255, 255, 255, 0.98); 
+    --ring-track: #dfe6e9; 
+    --ring-color: #ff6b4a; 
+}
+
+[data-theme="ocean"] { 
+    --primary: #0984e3; 
+    --primary-dim: rgba(9, 132, 227, 0.1); 
+    --bg: #f0f9ff; 
+    --surface: #ffffff; 
+    --card-bg: #dfe6e9; 
+    --text: #2c3e50; 
+    --text-light: #576574; 
+    --border: #c7ecee; 
+    --shadow: rgba(9, 132, 227, 0.1); 
+    --danger: #ff7675; 
+    --btn-text: #2c3e50; 
+    --menu-bg: rgba(255, 255, 255, 0.98); 
+    --ring-track: #c7ecee; 
+    --ring-color: #0984e3; 
+}
+
+[data-theme="forest"] { 
+    --primary: #00b894; 
+    --primary-dim: rgba(0, 184, 148, 0.1); 
+    --bg: #f1f2f6; 
+    --surface: #ffffff; 
+    --card-bg: #ced6e0; 
+    --text: #2f3542; 
+    --text-light: #747d8c; 
+    --border: #a4b0be; 
+    --shadow: rgba(0, 184, 148, 0.1); 
+    --danger: #ff6b6b; 
+    --btn-text: #2f3542; 
+    --menu-bg: rgba(255, 255, 255, 0.98); 
+    --ring-track: #a4b0be; 
+    --ring-color: #00b894; 
+}
+
+[data-theme="night"] { 
+    --primary: #ff7675; 
+    --primary-dim: rgba(255, 118, 117, 0.15); 
+    --bg: #1e272e; 
+    --surface: #2f3640; 
+    --card-bg: #353b48; 
+    --text: #f5f6fa; 
+    --text-light: #dcdde1; 
+    --border: #4b6584; 
+    --shadow: rgba(0,0,0,0.3); 
+    --danger: #e17055; 
+    --btn-text: #f5f6fa; 
+    --menu-bg: rgba(47, 54, 64, 0.98); 
+    --ring-track: #4b6584; 
+    --ring-color: #ff7675; 
+}
+
+/* --- GLOBAL STYLES --- */
+body { 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+    background: var(--bg); 
+    color: var(--text); 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    min-height: 100vh; 
+    margin: 0; 
+    padding: 20px 15px; 
+    box-sizing: border-box; 
+    transition: background-color var(--trans-speed), color var(--trans-speed); 
+}
+
+.container { 
+    width: 100%; 
+    max-width: 500px; 
+    position: relative; 
+    padding-bottom: 80px; 
+}
+
+/* --- HEADER & MENU --- */
+header { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    position: relative; 
+    margin-bottom: 20px; 
+    padding: 0 10px; 
+}
+
+h1 { 
+    margin: 0; 
+    font-size: 1.1rem; 
+    font-weight: 600; 
+    color: var(--text); 
+}
+
+.menu-btn { 
+    position: absolute; 
+    right: 0; 
+    color: var(--text-light); 
+    cursor: pointer; 
+    padding: 5px; 
+    z-index: 101; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.menu-btn svg { width: 24px; height: 24px; }
+
+.theme-menu { 
+    position: absolute; 
+    top: 50px; 
+    right: 10px; 
+    width: 180px; 
+    background: var(--menu-bg); 
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px); 
+    border-radius: 16px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2); 
+    padding: 10px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 5px; 
+    z-index: 100; 
+    border: 1px solid var(--border); 
+    opacity: 0; 
+    transform: scale(0.8); 
+    pointer-events: none; 
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    transform-origin: top right; 
+}
+
+.theme-menu.open { 
+    opacity: 1; 
+    transform: scale(1); 
+    pointer-events: auto; 
+}
+
+.menu-title { 
+    font-size: 0.7rem; 
+    color: var(--text-light); 
+    font-weight: 700; 
+    padding: 5px 10px; 
+    border-bottom: 1px solid var(--border); 
+    margin-bottom: 5px; 
+    text-transform: uppercase; 
+}
+
+.theme-item { 
+    padding: 10px; 
+    border-radius: 10px; 
+    cursor: pointer; 
+    font-size: 0.9rem; 
+    font-weight: 500; 
+    color: var(--text); 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    transition: background 0.2s; 
+}
+
+.theme-item:hover { 
+    background: var(--primary-dim); 
+    color: var(--primary); 
+}
+
+.color-preview { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.reset-item { color: var(--danger); }
+.reset-item:hover { background: rgba(214, 48, 49, 0.1); color: var(--danger); }
+
+/* --- SETTINGS CARD --- */
+.settings-card { 
+    background: var(--card-bg); 
+    border-radius: 20px; 
+    padding: 15px; 
+    margin-bottom: 20px; 
+    transition: background-color var(--trans-speed); 
+}
+
+.btn-connect { 
+    width: 100%; 
+    padding: 12px; 
+    border: none; 
+    border-radius: 25px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    font-size: 0.95rem; 
+    background: var(--primary); 
+    color: white; 
+    margin-bottom: 15px; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15); 
+    transition: background var(--trans-speed), transform 0.1s; 
+}
+
+.btn-connect.connected { background: #00b894; }
+
+.control-group { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 6px; 
+    margin-bottom: 10px; 
+    transition: opacity 0.3s; 
+}
+
+.controls-row { display: flex; gap: 10px; margin-bottom: 5px; }
+
+.control-pill { 
+    background: var(--surface); 
+    border-radius: 15px; 
+    padding: 10px; 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    box-shadow: 0 2px 5px var(--shadow); 
+}
+
+.control-pill label { 
+    font-size: 0.65rem; 
+    color: var(--text-light); 
+    margin-bottom: 4px; 
+    font-weight: 700; 
+    text-transform: uppercase; 
+}
+
+input[type="number"] { 
+    border: none; 
+    font-size: 1.1rem; 
+    font-weight: 800; 
+    color: var(--primary); 
+    text-align: center; 
+    width: 100%; 
+    background: transparent; 
+}
+input[type="number"]:focus { outline: none; }
+input[type="number"]:disabled { opacity: 0.5; cursor: not-allowed; color: var(--text-light); }
+
+.mode-switch { 
+    display: flex; 
+    background: rgba(0,0,0,0.05); 
+    border-radius: 20px; 
+    padding: 3px; 
+    width: 100%; 
+    margin-bottom: 10px; 
+}
+[data-theme="night"] .mode-switch { background: rgba(255,255,255,0.1); }
+
+.mode-option { 
+    flex: 1; 
+    text-align: center; 
+    padding: 8px; 
+    font-size: 0.75rem; 
+    border-radius: 18px; 
+    cursor: pointer; 
+    color: var(--text-light); 
+    font-weight: 600; 
+    transition: all var(--trans-speed); 
+}
+.mode-option.active { 
+    background: var(--surface); 
+    color: var(--primary); 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+}
+
+.level-select { display: flex; justify-content: center; gap: 15px; margin-bottom: 10px; }
+
+.lvl-dot { 
+    width: 32px; 
+    height: 32px; 
+    border-radius: 50%; 
+    background: var(--surface); 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    font-size: 0.9rem; 
+    font-weight: bold; 
+    color: var(--text-light); 
+    cursor: pointer; 
+    border: 2px solid transparent; 
+    box-shadow: 0 2px 5px var(--shadow); 
+    transition: all var(--trans-speed); 
+}
+
+.lvl-dot.active { 
+    border-color: var(--primary); 
+    color: var(--primary); 
+    transform: scale(1.1); 
+}
+
+.section-label { 
+    font-size: 0.85rem; 
+    font-weight: 600; 
+    color: var(--text-light); 
+    margin-bottom: 8px; 
+    padding-left: 8px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+}
+
+/* --- TABS & DRILL GRID --- */
+.tabs-container { 
+    background: var(--card-bg); 
+    border-radius: 20px; 
+    padding: 10px; 
+    margin-bottom: 20px; 
+    display: grid; 
+    grid-template-columns: 1fr 1fr 1fr; 
+    gap: 10px; 
+}
+
+.tab-btn { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 4px; 
+    padding: 12px 5px; 
+    border-radius: 16px; 
+    border: 1px solid transparent; 
+    background: transparent; 
+    color: var(--text-light); 
+    font-weight: 600; 
+    font-size: 0.75rem; 
+    cursor: pointer; 
+    transition: all var(--trans-speed); 
+    text-align: center;
+}
+
+.tab-btn.active { 
+    background: var(--surface); 
+    border: 1px solid var(--primary); 
+    color: var(--primary); 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+}
+
+.icon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; width: 10px; height: 10px; margin-bottom: 2px; }
+.icon-dot { background-color: var(--text-light); border-radius: 50%; opacity: 0.5; }
+.tab-btn.active .icon-dot { background-color: var(--primary); opacity: 1; }
+
+/* === REDESIGNED DRILL LIST (Single Column) === */
+.drill-list { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px; 
+    margin-bottom: 10px; 
+}
+.hidden { display: none !important; }
+
+/* === WIDE BUTTON STYLE === */
+.btn-drill { 
+    width: 100%;
+    min-height: 60px;
+    padding: 0 15px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 15px; /* Spacing between icon, text, badge */
+    
+    background: var(--surface); 
+    border: 1px solid transparent; 
+    border-radius: 12px; 
+    color: var(--btn-text); 
+    box-shadow: 0 1px 3px var(--shadow); 
+    position: relative; 
+    transition: transform 0.1s, background-color 0.2s;
+    user-select: none; 
+    -webkit-user-select: none; 
+    cursor: pointer;
+}
+
+.btn-drill:active { transform: scale(0.98); }
+.btn-drill.running { border-color: var(--primary); background: var(--primary-dim); color: var(--primary); }
+.btn-drill:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; background: rgba(0,0,0,0.05); }
+
+/* Left-side visual icon */
+.btn-drill .drill-icon { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 3px; 
+    width: 14px; 
+    height: 14px; 
+    flex-shrink: 0; 
+    opacity: 0.7;
+}
+.btn-drill .drill-icon .d-dot { background-color: #b2bec3; border-radius: 50%; transition: background-color var(--trans-speed); }
+.btn-drill.running .drill-icon .d-dot { background-color: var(--primary); }
+
+/* Text Label */
+.btn-drill span { 
+    flex: 1; 
+    text-align: left; 
+    font-size: 0.95rem; 
+    font-weight: 600; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+}
+
+/* Random Badge (Right side now) */
+.mark-random { 
+    position: static;
+    width: 22px; 
+    height: 22px; 
+    border: 1.5px solid var(--danger); 
+    color: var(--danger); 
+    border-radius: 50%; 
+    font-size: 0.65rem; 
+    font-weight: 900; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    background: transparent; 
+    line-height: 1; 
+    flex-shrink: 0;
+}
+
+/* Sorting Grip Handle */
+.drill-grab-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 100%;
+    cursor: grab;
+    color: var(--text-light);
+    opacity: 0.3;
+    font-size: 1.4rem;
+    margin-left: 5px;
+    border-left: 1px solid var(--border);
+    padding-left: 10px;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+}
+
+.drill-grab-handle:hover {
+    opacity: 1;
+    color: var(--primary);
+}
+
+.btn-drill.dragging {
+    opacity: 0.5;
+    background: var(--card-bg);
+    border: 1px dashed var(--text-light);
+}
+
+/* --- FOOTER & LOGS --- */
+#status-text { 
+    text-align: center; 
+    font-size: 0.8rem; 
+    color: var(--primary); 
+    font-weight: 700; 
+    height: 20px; 
+    margin-bottom: 5px; 
+    letter-spacing: 0.5px; 
+    text-transform: uppercase; 
+}
+
+.log-box { 
+    margin-top: 10px; 
+    background: #2d3436; 
+    color: #00cec9; 
+    padding: 12px; 
+    border-radius: 10px; 
+    font-family: monospace; 
+    font-size: 0.65rem; 
+    height: 120px; 
+    overflow-y: auto; 
+    display: none; 
+    border: 1px solid #636e72; 
+    line-height: 1.4; 
+}
+.log-box div { margin-bottom: 2px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px; }
+
+.footer-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-top: 20px; 
+    font-size: 0.8rem; 
+    color: var(--text-light); 
+    font-weight: 600; 
+    padding: 0 5px; 
+}
+
+/* --- SWAP BUTTON (Between Balls) --- */
+.swap-zone {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2px 0;
+    margin: -8px 0 8px 0; /* Pulls elements closer to look connected */
+    position: relative;
+    z-index: 5;
+}
+
+/* Optional: A line behind the button to connect the balls visually */
+.swap-zone::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+    transform: translateX(-50%);
+    z-index: -1;
+}
+
+.btn-swap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-light);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+}
+
+.btn-swap:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+    transform: scale(1.1);
+}
+
+.checkbox-wrapper { display: flex; align-items: center; gap: 6px; }
+#stats-display { font-variant-numeric: tabular-nums; }
+
+/* TOAST - Z-Index updated to 300 to show over modal */
+#toast { 
+    visibility: hidden; 
+    min-width: 250px; 
+    background-color: #333; 
+    color: #fff; 
+    text-align: center; 
+    border-radius: 50px; 
+    padding: 16px; 
+    position: fixed; 
+    z-index: 300; 
+    left: 50%; 
+    bottom: 30px; 
+    transform: translateX(-50%); 
+    font-size: 0.9rem; 
+    opacity: 0; 
+    transition: opacity 0.5s, bottom 0.5s; 
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
+}
+#toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+
+/* --- MODALS --- */
+.modal-overlay { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0,0,0,0.85); 
+    backdrop-filter: blur(8px); 
+    z-index: 200; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    opacity: 0; 
+    pointer-events: none; 
+    transition: opacity 0.3s; 
+}
+.modal-overlay.open { opacity: 1; pointer-events: auto; }
+
+.modal { 
+    background: var(--surface); 
+    width: 95%; 
+    max-width: 400px; 
+    max-height: 90vh; 
+    border-radius: 25px; 
+    padding: 20px; 
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4); 
+    display: flex; 
+    flex-direction: column; 
+    overflow: hidden; 
+}
+
+/* MODAL HEADER - GENERAL */
+.modal-header { 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+    margin-bottom: 15px; 
+    padding-bottom: 10px; 
+    border-bottom: 1px solid var(--border);
+    width: 100%;
+}
+
+.modal-title { 
+    font-weight: normal; 
+    color: var(--text); 
+    font-size: 1.1rem; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    flex: 1;       
+    min-width: 0; 
+    text-align: left;
+    margin-right: 10px;
+}
+
+/* EDITOR MODAL HEADER SPECIFIC */
+/* Switches to column layout for Editor only */
+#editor-modal .modal-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+}
+
+/* Row 1: Title and Close */
+#editor-modal .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+}
+
+/* New Title Container allowing full width and edit icon */
+#editor-modal .title-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+#editor-drill-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#editor-drill-edit-icon {
+    font-size: 1rem;
+    opacity: 0.5;
+    flex-shrink: 0; /* Ensures icon never disappears */
+    color: var(--primary);
+}
+
+/* Row 2: Actions */
+#editor-modal .header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* Adjustments for buttons inside new layout */
+.btn-header-share { margin-right: 0; } 
+.random-toggle-container { margin-right: 0; }
+
+.modal-close { font-size: 1.5rem; color: var(--text-light); cursor: pointer; line-height: 1; }
+.modal-body { overflow-y: auto; flex: 1; padding-right: 5px; }
+
+/* --- EDITOR SPECIFIC (Smart Grid Layout) --- */
+
+.ball-group { 
+    border: 1px solid var(--border); 
+    border-radius: 12px; 
+    margin-bottom: 15px; 
+    overflow: hidden; 
+    background: var(--bg); 
+    transition: opacity 0.3s;
+}
+
+.ball-group.inactive {
+    opacity: 0.5;
+    border-style: dashed;
+}
+
+.group-title { 
+    background: var(--card-bg); 
+    padding: 8px 12px; 
+    font-size: 0.75rem; 
+    font-weight: 800; 
+    color: var(--text-light); 
+    text-transform: uppercase; 
+    border-bottom: 1px solid var(--border); 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Toggle Switch for Active/Inactive Ball */
+.ball-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 30px;
+    height: 16px;
+    background: #b2bec3;
+    border-radius: 15px;
+    transition: background 0.2s;
+}
+
+.toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+}
+
+.ball-toggle.active .toggle-switch {
+    background: var(--primary);
+}
+
+.ball-toggle.active .toggle-switch::after {
+    transform: translateX(14px);
+}
+
+/* Random Toggle (Header) */
+.random-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+.random-toggle-container input { display: none; }
+.random-toggle-container input:checked + .toggle-switch { background: var(--primary); }
+.random-toggle-container input:checked + .toggle-switch::after { transform: translateX(14px); }
+
+/* Round Plus Button */
+.btn-add-opt {
+    background: transparent;
+    border: 1px solid var(--primary); 
+    color: var(--primary);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    font-weight: 400;
+    line-height: 1;
+    padding: 0 0 2px 0;
+    transition: all 0.2s;
+}
+
+.btn-add-opt:hover {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.1);
+}
+
+.option-card { 
+    padding: 10px; 
+    border-bottom: 1px solid var(--border); 
+    position: relative; 
+}
+.option-card:last-child { border-bottom: none; }
+
+.option-label { 
+    font-size: 0.65rem; 
+    font-weight: 700; 
+    color: var(--primary); 
+    margin-bottom: 5px; 
+    text-transform: uppercase; 
+    display: block; 
+}
+
+/* --- GRID & INPUT STYLES (Replaced Sliders) --- */
+
+.editor-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr 1fr; 
+    gap: 8px; 
+    margin-bottom: 10px;
+}
+
+.editor-field { 
+    display: flex; 
+    flex-direction: column; 
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.field-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 2px;
+    padding: 0 4px;
+}
+
+.field-header label { 
+    font-size: 0.6rem; 
+    color: var(--text-light); 
+    font-weight: 700; 
+    text-transform: uppercase;
+}
+
+.field-header .range-hint { 
+    font-size: 0.5rem; 
+    color: #b2bec3; 
+}
+
+/* Fast Input Styling */
+.editor-field input { 
+    border: none;
+    background: transparent;
+    font-size: 0.95rem; 
+    color: var(--text); 
+    font-weight: 700; 
+    text-align: center; 
+    width: 100%; 
+    padding: 4px 0;
+    -moz-appearance: textfield; 
+}
+.editor-field input:focus { outline: none; color: var(--primary); }
+
+/* Spin Toggle Row */
+.spin-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding: 0 4px;
+}
+
+.spin-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-light);
+    text-transform: uppercase;
+}
+
+.spin-capsule {
+    display: flex;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2px;
+}
+
+.sc-opt {
+    padding: 4px 12px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--text-light);
+    transition: all 0.2s;
+}
+
+.sc-opt.active {
+    background: var(--text); /* Default dark/light contrast */
+    color: var(--bg);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Color Coding for Toggle */
+.sc-opt:first-child.active { background: #e17055; color: white; } /* Topspin */
+.sc-opt:last-child.active { background: #0984e3; color: white; } /* Backspin */
+
+/* --- EDITOR ACTION BUTTONS --- */
+.card-actions { 
+    display: flex; 
+    gap: 8px; 
+    margin-top: 5px; 
+}
+
+.btn-action { 
+    flex: 1; 
+    padding: 8px; 
+    border-radius: 8px; 
+    border: none; 
+    font-size: 0.75rem; 
+    font-weight: 700; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    transition: background 0.2s; 
+    text-transform: uppercase; 
+    color: white; 
+}
+
+.btn-act-test { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+.btn-act-test:hover { background: var(--text-light); color: white; }
+.btn-act-test:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-act-clone { background: #0984e3; }
+.btn-act-clone:hover { background: #00cec9; }
+
+.btn-act-del { background: var(--danger); }
+.btn-act-del:hover { opacity: 0.8; }
+.btn-act-del:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Share Button */
+.btn-header-share {
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+}
+.btn-header-share:hover { transform: scale(1.1); color: var(--text); }
+.btn-header-share svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* --- MODAL FOOTER --- */
+.modal-footer { 
+    margin-top: 15px; 
+    display: flex; 
+    gap: 8px; 
+    align-items: stretch;
+}
+
+.btn-modal { 
+    padding: 12px 8px; 
+    border-radius: 10px; 
+    border: none; 
+    font-weight: 600; 
+    cursor: pointer; 
+    font-size: 0.8rem; 
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap; 
+    transition: transform 0.1s, opacity 0.2s;
+}
+.btn-modal:active { transform: scale(0.96); }
+
+.btn-delete-drill { 
+    background: var(--danger); 
+    color: white; 
+    width: 44px; 
+    flex: 0 0 44px; 
+    padding: 0;
+}
+.btn-delete-drill svg { width: 20px; height: 20px; fill: currentColor; }
+.btn-delete-drill:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-test-combo { 
+    background: transparent;
+    border: 2px solid var(--primary); 
+    color: var(--primary); 
+    flex: 1.2; 
+}
+[data-theme="night"] .btn-test-combo { border-color: var(--primary); color: var(--primary); }
+.btn-test-combo:hover { background: var(--primary-dim); }
+
+.btn-save-as { 
+    background: transparent;
+    border: 2px solid var(--text);
+    color: var(--text); 
+    flex: 1.2;
+}
+.btn-save-as:hover { background: rgba(0,0,0,0.05); }
+[data-theme="night"] .btn-save-as:hover { background: rgba(255,255,255,0.1); }
+
+.btn-save { 
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary); 
+    flex: 1.5; 
+}
+.btn-save:hover { background: var(--primary-dim); }
+
+
+/* --- RUN OVERLAY --- */
+#run-ui { 
+    display: none; 
+    flex-direction: column; 
+    align-items: center; 
+    width: 100%; 
+    justify-content: center; 
+    text-align: center; 
+}
+.modal-overlay.open #run-ui { display: flex; }
+
+.countdown-circle { position: relative; width: 200px; height: 200px; margin-bottom: 30px; }
+.countdown-circle svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.track { fill: none; stroke: var(--ring-track); stroke-width: 8; }
+.progress { fill: none; stroke: var(--primary); stroke-width: 8; stroke-dasharray: 565; stroke-dashoffset: 0; stroke-linecap: round; }
+
+.center-text { 
+    position: absolute; 
+    top: 50%; 
+    left: 50%; 
+    transform: translate(-50%, -50%); 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.count-val { font-size: 4.5rem; font-weight: 800; color: var(--text); line-height: 1; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+.status-label { font-size: 0.9rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px; }
+
+.run-controls { display: flex; flex-direction: column; gap: 15px; width: 100%; margin-top: 10px; }
+.btn-run-ctrl { width: 100%; padding: 15px; border-radius: 15px; border: none; font-weight: 700; font-size: 1rem; cursor: pointer; transition: transform 0.1s; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.btn-run-ctrl:active { transform: scale(0.95); }
+.btn-pause { background: var(--card-bg); color: var(--text); }
+.btn-stop-run { 
+    background: var(--danger); 
+    color: white; 
+    padding: 30px;      /* Doubled padding (was 15px) */
+    font-size: 1.5rem;  /* Larger text */
+    margin-top: 10px;   /* Extra spacing from pause button */
+}
+.pulse-anim { animation: pulse 1s infinite; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+/* --- LAST PLAYED HIGHLIGHT --- */
+.btn-drill.last-played {
+    border-color: var(--primary); /* subtle highlight border */
+    background: var(--surface);   /* keep background clean or use var(--primary-dim) */
+}
+
+/* Optional: Add a small indicator icon */
+.btn-drill.last-played::after {
+    content: '●'; /* Dot indicator */
+    color: var(--primary);
+    position: absolute;
+    right: 10px; /* Adjust based on your button padding */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    
+    <header>
+        <h1>Nova Drill Control</h1>
+        <div class="menu-btn" onclick="toggleMenu()">
+            <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </div>
+    </header>
+
+    <div id="theme-menu" class="theme-menu">
+        <div class="menu-title">Drill</div>
+        <div class="theme-item" onclick="window.handleDownloadDialog()">
+            <span class="color-preview" style="background:#0984e3"></span> Download Drill
+        </div>
+        
+        <div class="theme-item" onclick="exportCustomDrills()"><span class="color-preview" style="background:var(--text)"></span> Export Drills</div>
+        <div class="theme-item" onclick="document.getElementById('csv-input').click()"><span class="color-preview" style="background:var(--text)"></span> Import Drills</div>
+        
+        <div style="border-top: 1px solid var(--border); margin: 5px 0;"></div>
+        <div class="menu-title">Theme</div>
+        <div class="theme-item" onclick="setTheme('standard')"><span class="color-preview" style="background:#ff6b4a"></span> Standard</div>
+        <div class="theme-item" onclick="setTheme('ocean')"><span class="color-preview" style="background:#0984e3"></span> Ocean</div>
+        <div class="theme-item" onclick="setTheme('forest')"><span class="color-preview" style="background:#00b894"></span> Forest</div>
+        <div class="theme-item" onclick="setTheme('night')"><span class="color-preview" style="background:#2d3436"></span> Dark</div>
+        
+        <div style="border-top: 1px solid var(--border); margin: 5px 0;"></div>
+        
+        <div class="theme-item" onclick="resetStats()">Reset Statistics</div>
+        <div class="theme-item reset-item" onclick="factoryReset()">Factory Reset</div>
+
+        <div style="border-top: 1px solid var(--border); margin: 5px 0;"></div>
+        <div class="theme-item" onclick="window.openAboutModal()">About</div>
+    </div>
+    
+    <input type="file" id="csv-input" accept=".csv" style="display:none" onchange="handleCSVUpload(event)">
+
+    <div class="settings-card">
+        <div id="status-text">Disconnected</div>
+        <button id="btn-connect" class="btn-connect">Connect</button>
+
+        <div class="control-group" id="grp-difficulty">
+            <div style="text-align:center; font-size:0.65rem; color:var(--text-light); margin-bottom:5px; font-weight:700;">DIFFICULTY LEVEL</div>
+            <div class="level-select">
+                <div class="lvl-dot active" onclick="setLevel(1, this)">1</div>
+                <div class="lvl-dot" onclick="setLevel(2, this)">2</div>
+                <div class="lvl-dot" onclick="setLevel(3, this)">3</div>
+            </div>
+        </div>
+
+        <div class="control-pill" style="margin-bottom: 10px; box-shadow:none; background:transparent; padding:0;">
+            <div class="mode-switch">
+                <div class="mode-option active" onclick="setMode('reps', this)">Reps</div>
+                <div class="mode-option" onclick="setMode('time', this)">Time</div>
+            </div>
+        </div>
+
+        <div class="controls-row">
+            <div class="control-pill" id="ui-reps">
+                <label>Count</label>
+                <input type="number" id="input-reps" value="10">
+            </div>
+            <div class="control-pill hidden" id="ui-time">
+                <label>Time (s)</label>
+                <input type="number" id="input-time" value="60" step="10">
+            </div>
+                <div class="control-pill">
+                    <label>Pause (s)</label> <input type="number" id="input-pause" value="0.0" step="0.1">
+                </div>
+                <div class="control-pill" title="Nur bei Neustart: Ball 1 kommt ca. 0,26 s zu spät, dieser Wert wird abgezogen. Bei Pause 0 läuft der Roboter durch. 0 = aus.">
+                    <label>Ball 1 (s)</label> <input type="number" id="input-ball1" value="0.26" step="0.01" min="0" max="1">
+                </div>
+                <div class="control-pill" title="Max. Baelle pro Bluetooth-Paket. Laengere Drills werden in Stuecke geteilt. iPhone: 7.">
+                    <label>Max Bälle</label> <input type="number" id="input-maxballs" value="7" step="1" min="1" max="20">
+                </div>
+        </div>
+    </div>
+
+    <div class="section-label">Drill Selection</div>
+    
+    <div class="tabs-container">
+        <div class="tab-btn active" onclick="switchTab('basic', this)">
+            <div class="icon-grid"><div class="icon-dot"></div><div class="icon-dot"></div><div class="icon-dot"></div><div class="icon-dot"></div></div> Basic
+        </div>
+        <div class="tab-btn" onclick="switchTab('combined', this)">
+            <div class="icon-grid"><div class="icon-dot"></div><div class="icon-dot"></div><div class="icon-dot"></div><div class="icon-dot"></div></div> Combined
+        </div>
+        <div class="tab-btn" onclick="switchTab('complex', this)">
+            <div class="icon-grid"><div class="icon-dot"></div><div class="icon-dot"></div><div class="icon-dot"></div><div class="icon-dot"></div></div> Complex
+        </div>
+        
+        <div class="tab-btn" 
+             onclick="switchTab('custom-a', this)"
+             ondrop="window.handleTabDrop(event, 'custom-a')" 
+             ondragover="window.allowTabDrop(event)">
+            <div class="icon-grid"><div class="icon-dot"></div><div class="icon-dot"></div><div class="icon-dot"></div><div class="icon-dot"></div></div> Custom A
+        </div>
+        <div class="tab-btn" 
+             onclick="switchTab('custom-b', this)"
+             ondrop="window.handleTabDrop(event, 'custom-b')" 
+             ondragover="window.allowTabDrop(event)">
+            <div class="icon-grid"><div class="icon-dot"></div><div class="icon-dot"></div><div class="icon-dot"></div><div class="icon-dot"></div></div> Custom B
+        </div>
+        <div class="tab-btn" 
+             onclick="switchTab('custom-c', this)"
+             ondrop="window.handleTabDrop(event, 'custom-c')" 
+             ondragover="window.allowTabDrop(event)">
+            <div class="icon-grid"><div class="icon-dot"></div><div class="icon-dot"></div><div class="icon-dot"></div><div class="icon-dot"></div></div> Custom C
+        </div>
+    </div>
+
+    <div id="view-basic" class="drill-list"></div>
+    <div id="view-combined" class="drill-list hidden"></div>
+    <div id="view-complex" class="drill-list hidden"></div>
+    <div id="view-custom-a" class="drill-list hidden"></div>
+    <div id="view-custom-b" class="drill-list hidden"></div>
+    <div id="view-custom-c" class="drill-list hidden"></div>
+
+    <div class="footer-row">
+        <div id="stats-display">Balls: 0 | Drills: 0</div>
+        <div>Version 2.3a · lokal v2.6</div>
+    </div>
+    
+    <div id="log" class="log-box"></div>
+</div>
+
+<div id="toast">Notification</div>
+
+<div id="editor-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="header-top">
+                <div class="title-container" onclick="window.handleRenameDrill()">
+                    <span id="editor-drill-name">Drill Name</span>
+                    <span id="editor-drill-edit-icon">✎</span>
+                </div>
+                <div class="modal-close" onclick="closeEditor()">×</div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-header-share" onclick="window.handleShareDrill()" title="Share Drill">
+                    <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+                </button>
+                <label class="random-toggle-container">
+                    <span class="toggle-label">Random</span>
+                    <input type="checkbox" id="chk-drill-random">
+                    <div class="toggle-switch"></div>
+                </label>
+            </div>
+        </div>
+        <div id="editor-body" class="modal-body"></div>
+        <div class="modal-footer">
+            <button class="btn-modal btn-delete-drill" onclick="window.handleDeleteDrill()" title="Delete">
+                <svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm2 3h14v13H5V9zm3-5h6v2H8V4zm9 5H7v11h10V9z"/></svg>
+            </button>
+            <button class="btn-modal btn-test-combo" onclick="window.handleTestCombo()">Test drill</button>
+            <button class="btn-modal btn-save-as" onclick="window.handleSaveAsDrill()">Save As</button>
+            <button class="btn-modal btn-save" onclick="saveDrillChanges()">Save</button>
+        </div>
+    </div>
+</div>
+
+<div id="run-overlay" class="modal-overlay">
+    <div class="modal" style="background: var(--surface); width: 90%; max-width:450px; padding: 30px 20px;">
+        <div id="run-ui">
+            <div class="countdown-circle">
+                <svg viewBox="0 0 200 200">
+                    <circle class="track" cx="100" cy="100" r="90"></circle>
+                    <circle class="progress" id="run-progress" cx="100" cy="100" r="90"></circle>
+                </svg>
+                <div class="center-text">
+                    <div class="count-val" id="run-display">4</div>
+                    <div class="status-label" id="run-label">GET READY</div>
+                </div>
+            </div>
+            <div class="run-controls">
+                <button id="btn-pause" class="btn-run-ctrl btn-pause" onclick="togglePause()">PAUSE</button>
+                <button class="btn-run-ctrl btn-stop-run" onclick="stopRun()">STOP</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="download-modal" class="modal-overlay">
+    <div class="modal" style="height:auto; min-height:300px;">
+        <div class="modal-header">
+            <div class="modal-title">Import Drill</div>
+            <div class="modal-close" onclick="window.closeDownloadModal()">×</div>
+        </div>
+        <div class="modal-body" style="display:flex; flex-direction:column; gap:20px; padding-top:15px;">
+            <div class="control-pill" style="box-shadow:none; border:1px solid var(--border);">
+                <label>Share Code</label>
+                <input type="text" id="dl-code" placeholder="ABC123" maxlength="6" 
+                       style="text-align:center; letter-spacing:4px; text-transform:uppercase; font-size:1.6rem; color:var(--primary); font-weight:800;">
+            </div>
+            <div>
+                <div class="section-label" style="text-align:center; margin-bottom:8px;">Select Destination</div>
+                <div class="mode-switch" id="dl-cat-switch">
+                    <div class="mode-option active" onclick="window.selectDlCategory('custom-a', this)">Custom A</div>
+                    <div class="mode-option" onclick="window.selectDlCategory('custom-b', this)">Custom B</div>
+                    <div class="mode-option" onclick="window.selectDlCategory('custom-c', this)">Custom C</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+             <button class="btn-modal btn-save" onclick="window.performDownload()">Download & Import</button>
+        </div>
+    </div>
+</div>
+
+<div id="save-as-modal" class="modal-overlay">
+    <div class="modal" style="height:auto; min-height:300px;">
+        <div class="modal-header">
+            <div class="modal-title">Save As New Drill</div>
+            <div class="modal-close" onclick="window.closeSaveAsModal()">×</div>
+        </div>
+        <div class="modal-body" style="display:flex; flex-direction:column; gap:20px; padding-top:15px;">
+            <div class="control-pill" style="box-shadow:none; border:1px solid var(--border);">
+                <label>Drill Name (Max 40)</label>
+                <input type="text" id="save-name" placeholder="My New Drill" maxlength="40" 
+                       style="text-align:center; font-size:1.2rem; color:var(--primary); font-weight:800; background:transparent;">
+            </div>
+            <div>
+                <div class="section-label" style="text-align:center; margin-bottom:8px;">Select Destination</div>
+                <div class="mode-switch" id="save-cat-switch">
+                    <div class="mode-option active" onclick="window.selectSaveCategory('custom-a', this)">Custom A</div>
+                    <div class="mode-option" onclick="window.selectSaveCategory('custom-b', this)">Custom B</div>
+                    <div class="mode-option" onclick="window.selectSaveCategory('custom-c', this)">Custom C</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+             <button class="btn-modal btn-save" onclick="window.performSaveAs()">Save Drill</button>
+        </div>
+    </div>
+</div>
+
+<div id="about-modal" class="modal-overlay">
+    <div class="modal" style="height:auto; width:85%; max-width:320px;">
+        <div class="modal-header">
+            <div class="modal-title">About</div>
+            <div class="modal-close" onclick="window.closeAboutModal()">×</div>
+        </div>
+        <div class="modal-body" style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:15px; padding:20px 0;">
+            <h3 style="margin:0; color:var(--text);">Nova Drill Control</h3>
+            <a href="https://github.com/olanga/nova" target="_blank" 
+               style="color:var(--primary); font-weight:700; text-decoration:none; padding:10px 20px; border:2px solid var(--primary); border-radius:12px; transition:0.2s;">
+               View on GitHub
+            </a>
+        </div>
+    </div>
+</div>
+
+<div id="summary-modal" class="modal-overlay">
+    <div class="modal" style="height:auto; width:90%; max-width:380px;">
+        <div class="modal-header">
+            <div class="modal-title">Session Summary</div>
+        </div>
+        <div class="modal-body" style="display:flex; flex-direction:column; gap:15px; padding:15px 0;">
+            <div style="text-align:center; color:var(--text-light); font-size:0.9rem; margin-bottom:10px;">
+                Training session complete!
+            </div>
+            <div style="display:flex; gap:10px; justify-content:center;">
+                <div class="control-pill">
+                    <label>Drills</label>
+                    <div id="sum-drills-val" style="font-size:1.8rem; font-weight:800; color:var(--primary); line-height:1;">0</div>
+                </div>
+                <div class="control-pill">
+                    <label>Balls</label>
+                    <div id="sum-balls-val" style="font-size:1.8rem; font-weight:800; color:var(--primary); line-height:1;">0</div>
+                </div>
+                <div class="control-pill">
+                    <label>Time</label>
+                    <div id="sum-time-val" style="font-size:1.8rem; font-weight:800; color:var(--text); line-height:1;">0:00</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+             <button class="btn-modal btn-save" onclick="window.closeSummaryModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(() => {
+  // js/constants.js
+  var SERVICE_UUID = 65279;
+  var UUID_S = "02f00000-0000-0000-0000-00000000fe00";
+  var UUID_N = "02f00000-0000-0000-0000-00000000ff02";
+  var UUID_W = "02f00000-0000-0000-0000-00000000ff01";
+  var SALT = "Mjgx1jAwXDBaMFcxCz3JBgNVBAYT4kJF7Rkw";
+  var MSG_DONE = "00020300050100";
+  var CATEGORIES = {
+    basic: ["push(b)", "push(f)", "drive(b)", "drive(f)", "loop(b)", "loop(f)"],
+    combined: ["loop(b)-drive(b)", "loop(f)-drive(f)", "drive(f)-drive(b)", "push(f)-drive(f)", "push(b)-loop(b)", "loop(f)-drive(b)", "push(f)-loop(b)", "drive(f)-drive(f)", "push(b)-loop(f)", "push(f)-loop(f)", "loop(f)-loop(f)", "loop(b)-drive(f)"],
+    complex: ["push(b)-loop(f)-drive(b)", "push(f)-loop(b)-drive(f)", "loop(f)-drive(f)-drive(b)", "loop(b)-drive(f)-drive(b)", "drive(f)-drive(f)-drive(f)", "push(f)-loop(f)-drive(f)", "push(b)-loop(b)-drive(b)", "push(f)-loop(b)-drive(b)", "loop(f)-drive(b)-drive(f)", "loop(b)-drive(b)-drive(f)", "push(b)-loop(f)-drive(f)", "push(b)-loop(b)-drive(f)", "drive(b)-drive(f)-drive(f)", "random-drive", "23-random-drive", "all-random"],
+    "custom-a": [],
+    "custom-b": [],
+    "custom-c": []
+  };
+  var RPM_MIN = 400;
+  var RPM_MAX = 7500;
+  var SPIN_LIMITS = {
+    "0": 2,
+    "0.5": 3,
+    "1": 4,
+    "1.5": 5,
+    "2": 6,
+    "2.5": 7,
+    "3": 8,
+    "3.5": 9,
+    "4": 10,
+    "4.5": 10,
+    "5": 9,
+    "5.5": 8,
+    "6": 8,
+    "6.5": 7,
+    "7": 6,
+    "7.5": 5,
+    "8": 4,
+    "8.5": 3,
+    "9": 2,
+    "9.5": 1,
+    "10": 0
+  };
+  var mkStep = (t, b, h, d, f, r) => [[t, b, h, d, f, r, 1]];
+  var PUSH_B = [1547, 2915, 50, -5, 10, 1];
+  var PUSH_F = [1547, 2915, 50, 5, 10, 1];
+  var DRIVE_B = [3545, 2177, 50, -5, 40, 1];
+  var DRIVE_F = [3545, 2177, 50, 5, 40, 1];
+  var LOOP_B = [1520, 3572, 50, -5, 10, 1];
+  var LOOP_F = [1520, 3572, 50, 5, 10, 1];
+  var combine = (arr) => arr.map((d) => [d]);
+  var DEFAULT_DRILLS = {
+    // --- BASIC ---
+    "push(b)": { 1: [mkStep(...PUSH_B)], 2: [mkStep(1205, 3257, 50, -5, 20, 1)], 3: [mkStep(863, 3599, 50, -5, 30, 1)] },
+    "push(f)": { 1: [mkStep(...PUSH_F)], 2: [mkStep(1205, 3257, 50, 5, 20, 1)], 3: [mkStep(863, 3599, 50, 5, 30, 1)] },
+    "drive(b)": { 1: [mkStep(...DRIVE_B)], 2: [mkStep(3545, 2177, 50, -5, 50, 1)], 3: [mkStep(3545, 2177, 50, -5, 70, 1)] },
+    "drive(f)": { 1: [mkStep(...DRIVE_F)], 2: [mkStep(3545, 2177, 50, 5, 50, 1)], 3: [mkStep(3545, 2177, 50, 5, 70, 1)] },
+    "loop(f)": { 1: [mkStep(...LOOP_F)], 2: [mkStep(1178, 3914, 50, 5, 20, 1)], 3: [mkStep(836, 4256, 50, 5, 30, 1)] },
+    "loop(b)": { 1: [mkStep(...LOOP_B)], 2: [mkStep(1178, 3914, 50, -5, 20, 1)], 3: [mkStep(836, 4256, 50, -5, 30, 1)] },
+    // --- COMBINED ---
+    // Fixed: Removed inner brackets [LOOP_B] -> LOOP_B
+    "loop(b)-drive(b)": { 1: combine([LOOP_B, DRIVE_B]), 2: combine([LOOP_B, DRIVE_B]), 3: combine([LOOP_B, DRIVE_B]) },
+    "loop(f)-drive(f)": { 1: combine([LOOP_F, DRIVE_F]), 2: combine([LOOP_F, DRIVE_F]), 3: combine([LOOP_F, DRIVE_F]) },
+    "drive(f)-drive(b)": { 1: combine([DRIVE_F, DRIVE_B]), 2: combine([DRIVE_F, DRIVE_B]), 3: combine([DRIVE_F, DRIVE_B]) },
+    "push(f)-drive(f)": { 1: combine([PUSH_F, DRIVE_F]), 2: combine([PUSH_F, DRIVE_F]), 3: combine([PUSH_F, DRIVE_F]) },
+    "push(b)-loop(b)": { 1: combine([PUSH_B, LOOP_B]), 2: combine([PUSH_B, LOOP_B]), 3: combine([PUSH_B, LOOP_B]) },
+    "loop(f)-drive(b)": { 1: combine([LOOP_F, DRIVE_B]), 2: combine([LOOP_F, DRIVE_B]), 3: combine([LOOP_F, DRIVE_B]) },
+    "push(f)-loop(b)": { 1: combine([PUSH_F, LOOP_B]), 2: combine([PUSH_F, LOOP_B]), 3: combine([PUSH_F, LOOP_B]) },
+    "drive(f)-drive(f)": { 1: combine([DRIVE_F, DRIVE_F]), 2: combine([DRIVE_F, DRIVE_F]), 3: combine([DRIVE_F, DRIVE_F]) },
+    "push(b)-loop(f)": { 1: combine([PUSH_B, LOOP_F]), 2: combine([PUSH_B, LOOP_F]), 3: combine([PUSH_B, LOOP_F]) },
+    "push(f)-loop(f)": { 1: combine([PUSH_F, LOOP_F]), 2: combine([PUSH_F, LOOP_F]), 3: combine([PUSH_F, LOOP_F]) },
+    "loop(f)-loop(f)": { 1: combine([LOOP_F, LOOP_F]), 2: combine([LOOP_F, LOOP_F]), 3: combine([LOOP_F, LOOP_F]) },
+    "loop(b)-drive(f)": { 1: combine([LOOP_B, DRIVE_F]), 2: combine([LOOP_B, DRIVE_F]), 3: combine([LOOP_B, DRIVE_F]) },
+    // --- COMPLEX ---
+    "push(b)-loop(f)-drive(b)": { 1: combine([PUSH_B, LOOP_F, DRIVE_B]), 2: combine([PUSH_B, LOOP_F, DRIVE_B]), 3: combine([PUSH_B, LOOP_F, DRIVE_B]) },
+    "push(f)-loop(b)-drive(f)": { 1: combine([PUSH_F, LOOP_B, DRIVE_F]), 2: combine([PUSH_F, LOOP_B, DRIVE_F]), 3: combine([PUSH_F, LOOP_B, DRIVE_F]) },
+    "loop(f)-drive(f)-drive(b)": { 1: combine([LOOP_F, DRIVE_F, DRIVE_B]), 2: combine([LOOP_F, DRIVE_F, DRIVE_B]), 3: combine([LOOP_F, DRIVE_F, DRIVE_B]) },
+    "loop(b)-drive(f)-drive(b)": { 1: combine([LOOP_B, DRIVE_F, DRIVE_B]), 2: combine([LOOP_B, DRIVE_F, DRIVE_B]), 3: combine([LOOP_B, DRIVE_F, DRIVE_B]) },
+    "drive(f)-drive(f)-drive(f)": { 1: combine([DRIVE_F, DRIVE_F, DRIVE_F]), 2: combine([DRIVE_F, DRIVE_F, DRIVE_F]), 3: combine([DRIVE_F, DRIVE_F, DRIVE_F]) },
+    "push(f)-loop(f)-drive(f)": { 1: combine([PUSH_F, LOOP_F, DRIVE_F]), 2: combine([PUSH_F, LOOP_F, DRIVE_F]), 3: combine([PUSH_F, LOOP_F, DRIVE_F]) },
+    "push(b)-loop(b)-drive(b)": { 1: combine([PUSH_B, LOOP_B, DRIVE_B]), 2: combine([PUSH_B, LOOP_B, DRIVE_B]), 3: combine([PUSH_B, LOOP_B, DRIVE_B]) },
+    "push(f)-loop(b)-drive(b)": { 1: combine([PUSH_F, LOOP_B, DRIVE_B]), 2: combine([PUSH_F, LOOP_B, DRIVE_B]), 3: combine([PUSH_F, LOOP_B, DRIVE_B]) },
+    "loop(f)-drive(b)-drive(f)": { 1: combine([LOOP_F, DRIVE_B, DRIVE_F]), 2: combine([LOOP_F, DRIVE_B, DRIVE_F]), 3: combine([LOOP_F, DRIVE_B, DRIVE_F]) },
+    "loop(b)-drive(b)-drive(f)": { 1: combine([LOOP_B, DRIVE_B, DRIVE_F]), 2: combine([LOOP_B, DRIVE_B, DRIVE_F]), 3: combine([LOOP_B, DRIVE_B, DRIVE_F]) },
+    "push(b)-loop(f)-drive(f)": { 1: combine([PUSH_B, LOOP_F, DRIVE_F]), 2: combine([PUSH_B, LOOP_F, DRIVE_F]), 3: combine([PUSH_B, LOOP_F, DRIVE_F]) },
+    "push(b)-loop(b)-drive(f)": { 1: combine([PUSH_B, LOOP_B, DRIVE_F]), 2: combine([PUSH_B, LOOP_B, DRIVE_F]), 3: combine([PUSH_B, LOOP_B, DRIVE_F]) },
+    "drive(b)-drive(f)-drive(f)": { 1: combine([DRIVE_B, DRIVE_F, DRIVE_F]), 2: combine([DRIVE_B, DRIVE_F, DRIVE_F]), 3: combine([DRIVE_B, DRIVE_F, DRIVE_F]) },
+    // --- RANDOM ---
+    "random-drive": {
+      1: combine([DRIVE_F, DRIVE_B]),
+      2: combine([DRIVE_F, DRIVE_B]),
+      3: combine([DRIVE_F, DRIVE_B]),
+      random: true
+    },
+    "23-random-drive": {
+      1: combine([DRIVE_F, DRIVE_B, DRIVE_F]),
+      2: combine([DRIVE_F, DRIVE_B, DRIVE_F]),
+      3: combine([DRIVE_F, DRIVE_B, DRIVE_F]),
+      random: true
+    },
+    "all-random": {
+      1: combine([PUSH_F, PUSH_B, DRIVE_F, DRIVE_B]),
+      2: combine([PUSH_F, PUSH_B, DRIVE_F, DRIVE_B]),
+      3: combine([PUSH_F, PUSH_B, DRIVE_F, DRIVE_B]),
+      random: true
+    }
+  };
+
+  // js/utils.js
+  var toastTimer = null;
+  function log(msg) {
+    const t = (/* @__PURE__ */ new Date()).toLocaleTimeString().split(" ")[0];
+    const logBox = document.getElementById("log");
+    if (logBox) {
+      if (logBox.children.length > 50) {
+        logBox.removeChild(logBox.firstChild);
+      }
+      const line = document.createElement("div");
+      line.textContent = `[${t}] ${msg}`;
+      logBox.appendChild(line);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+    console.log(`[${t}] ${msg}`);
+  }
+  function showToast(text) {
+    const t = document.getElementById("toast");
+    if (t) {
+      if (toastTimer) clearTimeout(toastTimer);
+      t.textContent = text;
+      t.classList.add("show");
+      toastTimer = setTimeout(() => {
+        t.classList.remove("show");
+        toastTimer = null;
+      }, 2500);
+    }
+  }
+  function clamp(val, min, max) {
+    return Math.max(min, Math.min(max, val));
+  }
+  function toggleBodyScroll(lock) {
+    if (lock) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "";
+  }
+  var MD5 = function(d) {
+    var r = M(V(Y(X(d), 8 * d.length)));
+    return r.toLowerCase();
+  };
+  function M(d) {
+    for (var _, m = "0123456789ABCDEF", f = "", r = 0; r < d.length; r++) _ = d.charCodeAt(r), f += m.charAt(_ >>> 4 & 15) + m.charAt(15 & _);
+    return f;
+  }
+  function X(d) {
+    for (var _ = Array(d.length >> 2), m = 0; m < _.length; m++) _[m] = 0;
+    for (m = 0; m < 8 * d.length; m += 8) _[m >> 5] |= (255 & d.charCodeAt(m / 8)) << m % 32;
+    return _;
+  }
+  function V(d) {
+    for (var _ = "", m = 0; m < 32 * d.length; m += 8) _ += String.fromCharCode(d[m >> 5] >>> m % 32 & 255);
+    return _;
+  }
+  function Y(d, _) {
+    d[_ >> 5] |= 128 << _ % 32, d[14 + (_ + 64 >>> 9 << 4)] = _;
+    for (var m = 1732584193, f = -271733879, r = -1732584194, i = 271733878, n = 0; n < d.length; n += 16) {
+      var h = m, t = f, g = r, e = i;
+      f = md5_ii(f = md5_ii(f = md5_ii(f = md5_ii(f = md5_hh(f = md5_hh(f = md5_hh(f = md5_hh(f = md5_gg(f = md5_gg(f = md5_gg(f = md5_gg(f = md5_ff(f = md5_ff(f = md5_ff(f = md5_ff(f, r = md5_ff(r, i = md5_ff(i, m = md5_ff(m, f, r, i, d[n + 0], 7, -680876936), f, r, d[n + 1], 12, -389564586), m, f, d[n + 2], 17, 606105819), i, m, d[n + 3], 22, -1044525330), r = md5_ff(r, i = md5_ff(i, m = md5_ff(m, f, r, i, d[n + 4], 7, -176418897), f, r, d[n + 5], 12, 1200080426), m, f, d[n + 6], 17, -1473231341), i, m, d[n + 7], 22, -45705983), r = md5_ff(r, i = md5_ff(i, m = md5_ff(m, f, r, i, d[n + 8], 7, 1770035416), f, r, d[n + 9], 12, -1958414417), m, f, d[n + 10], 17, -42063), i, m, d[n + 11], 22, -1990404162), r = md5_ff(r, i = md5_ff(i, m = md5_ff(m, f, r, i, d[n + 12], 7, 1804603682), f, r, d[n + 13], 12, -40341101), m, f, d[n + 14], 17, -1502002290), i, m, d[n + 15], 22, 1236535329), r = md5_gg(r, i = md5_gg(i, m = md5_gg(m, f, r, i, d[n + 1], 5, -165796510), f, r, d[n + 6], 9, -1069501632), m, f, d[n + 11], 14, 643717713), i, m, d[n + 0], 20, -373897302), r = md5_gg(r, i = md5_gg(i, m = md5_gg(m, f, r, i, d[n + 5], 5, -701558691), f, r, d[n + 10], 9, 38016083), m, f, d[n + 15], 14, -660478335), i, m, d[n + 4], 20, -405537848), r = md5_gg(r, i = md5_gg(i, m = md5_gg(m, f, r, i, d[n + 9], 5, 568446438), f, r, d[n + 14], 9, -1019803690), m, f, d[n + 3], 14, -187363961), i, m, d[n + 8], 20, 1163531501), r = md5_gg(r, i = md5_gg(i, m = md5_gg(m, f, r, i, d[n + 13], 5, -1444681467), f, r, d[n + 2], 9, -51403784), m, f, d[n + 7], 14, 1735328473), i, m, d[n + 12], 20, -1926607734), r = md5_hh(r, i = md5_hh(i, m = md5_hh(m, f, r, i, d[n + 5], 4, -378558), f, r, d[n + 8], 11, -2022574463), m, f, d[n + 11], 16, 1839030562), i, m, d[n + 14], 23, -35309556), r = md5_hh(r, i = md5_hh(i, m = md5_hh(m, f, r, i, d[n + 1], 4, -1530992060), f, r, d[n + 4], 11, 1272893353), m, f, d[n + 7], 16, -155497632), i, m, d[n + 10], 23, -1094730640), r = md5_hh(r, i = md5_hh(i, m = md5_hh(m, f, r, i, d[n + 13], 4, 681279174), f, r, d[n + 0], 11, -358537222), m, f, d[n + 3], 16, -722521979), i, m, d[n + 6], 23, 76029189), r = md5_hh(r, i = md5_hh(i, m = md5_hh(m, f, r, i, d[n + 9], 4, -640364487), f, r, d[n + 12], 11, -421815835), m, f, d[n + 15], 16, 530742520), i, m, d[n + 2], 23, -995338651), r = md5_ii(r, i = md5_ii(i, m = md5_ii(m, f, r, i, d[n + 0], 6, -198630844), f, r, d[n + 7], 10, 1126891415), m, f, d[n + 14], 15, -1416354905), i, m, d[n + 5], 21, -57434055), r = md5_ii(r, i = md5_ii(i, m = md5_ii(m, f, r, i, d[n + 12], 6, 1700485571), f, r, d[n + 3], 10, -1894986606), m, f, d[n + 10], 15, -1051523), i, m, d[n + 1], 21, -2054922799), r = md5_ii(r, i = md5_ii(i, m = md5_ii(m, f, r, i, d[n + 8], 6, 1873313359), f, r, d[n + 15], 10, -30611744), m, f, d[n + 6], 15, -1560198380), i, m, d[n + 13], 21, 1309151649), r = md5_ii(r, i = md5_ii(i, m = md5_ii(m, f, r, i, d[n + 4], 6, -145523070), f, r, d[n + 11], 10, -1120210379), m, f, d[n + 2], 15, 718787259), i, m, d[n + 9], 21, -343485551), m = safe_add(m, h), f = safe_add(f, t), r = safe_add(r, g), i = safe_add(i, e);
+    }
+    return Array(m, f, r, i);
+  }
+  function md5_cmn(d, _, m, f, r, i) {
+    return safe_add(bit_rol(safe_add(safe_add(_, d), safe_add(f, i)), r), m);
+  }
+  function md5_ff(d, _, m, f, r, i, n) {
+    return md5_cmn(_ & m | ~_ & f, d, _, r, i, n);
+  }
+  function md5_gg(d, _, m, f, r, i, n) {
+    return md5_cmn(_ & f | m & ~f, d, _, r, i, n);
+  }
+  function md5_hh(d, _, m, f, r, i, n) {
+    return md5_cmn(_ ^ m ^ f, d, _, r, i, n);
+  }
+  function md5_ii(d, _, m, f, r, i, n) {
+    return md5_cmn(m ^ (_ | ~f), d, _, r, i, n);
+  }
+  function safe_add(d, _) {
+    var m = (65535 & d) + (65535 & _);
+    return (d >> 16) + (_ >> 16) + (m >> 16) << 16 | 65535 & m;
+  }
+  function bit_rol(d, _) {
+    return d << _ | d >>> 32 - _;
+  }
+  function formatDuration(ms) {
+    if (!ms || ms < 0) return "0:00";
+    const totalSeconds = Math.floor(ms / 1e3);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60);
+      const remMin = minutes % 60;
+      return `${hours}h ${remMin}m`;
+    }
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  }
+
+  // js/state.js
+  var currentDrills = {};
+  var userCustomDrills = { "custom-a": [], "custom-b": [], "custom-c": [] };
+  var drillOrder = JSON.parse(JSON.stringify(CATEGORIES));
+  var selectedLevel = 1;
+  var runMode = "reps";
+  var appStats = { balls: 0, drills: 0 };
+  var sessionSnapshot = { balls: 0, drills: 0 };
+  var sessionStartTime = 0;
+  function startSession() {
+    sessionSnapshot.balls = appStats.balls;
+    sessionSnapshot.drills = appStats.drills;
+    sessionStartTime = Date.now();
+  }
+  function getSessionSummary() {
+    const durationMs = sessionStartTime > 0 ? Date.now() - sessionStartTime : 0;
+    return {
+      balls: appStats.balls - sessionSnapshot.balls,
+      drills: appStats.drills - sessionSnapshot.drills,
+      duration: durationMs
+    };
+  }
+  var lastPlayedDrill = localStorage.getItem("nova_last_played");
+  function setLastPlayed(key) {
+    lastPlayedDrill = key;
+    localStorage.setItem("nova_last_played", key);
+  }
+  function initData() {
+    const savedTheme = localStorage.getItem("nova_theme_pref");
+    if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+    const savedStats = localStorage.getItem("nova_stats");
+    if (savedStats) {
+      try {
+        appStats = JSON.parse(savedStats);
+      } catch (e) {
+      }
+    }
+    const savedDrills = localStorage.getItem("custom_drills");
+    const userDefaults = localStorage.getItem("user_defaults");
+    const customData = localStorage.getItem("custom_data");
+    const savedOrder = localStorage.getItem("drill_order");
+    if (savedOrder) {
+      try {
+        const parsedOrder = JSON.parse(savedOrder);
+        ["basic", "combined", "complex"].forEach((cat) => {
+          if (parsedOrder[cat]) drillOrder[cat] = parsedOrder[cat];
+        });
+      } catch (e) {
+        console.error("Error loading drill order", e);
+      }
+    }
+    currentDrills = savedDrills ? JSON.parse(savedDrills) : userDefaults ? JSON.parse(userDefaults) : JSON.parse(JSON.stringify(DEFAULT_DRILLS));
+    if (customData) userCustomDrills = JSON.parse(customData);
+    normalizeDrills();
+  }
+  function normalizeDrills() {
+    for (let key in currentDrills) {
+      if (key === "random") continue;
+      for (let lvl = 1; lvl <= 3; lvl++) {
+        if (currentDrills[key] && currentDrills[key][lvl]) {
+          const steps = currentDrills[key][lvl];
+          currentDrills[key][lvl] = steps.map((step) => {
+            if (step.length > 0 && typeof step[0] === "number") return [step];
+            return step;
+          });
+        }
+      }
+    }
+  }
+  function setLevel(lvl) {
+    selectedLevel = lvl;
+  }
+  function setMode(mode) {
+    runMode = mode;
+  }
+  function saveDrillsToStorage() {
+    localStorage.setItem("custom_drills", JSON.stringify(currentDrills));
+  }
+  function saveDrillOrder() {
+    localStorage.setItem("drill_order", JSON.stringify(drillOrder));
+  }
+  function saveAsDefault() {
+    if (confirm("Save current settings as your new personal default?")) {
+      localStorage.setItem("user_defaults", JSON.stringify(currentDrills));
+      showToast("Saved as Default");
+    }
+  }
+  function resetToDefault() {
+    const hasUserDefault = localStorage.getItem("user_defaults");
+    if (confirm(hasUserDefault ? "Restore saved defaults?" : "Restore factory settings?")) {
+      currentDrills = hasUserDefault ? JSON.parse(hasUserDefault) : JSON.parse(JSON.stringify(DEFAULT_DRILLS));
+      drillOrder = JSON.parse(JSON.stringify(CATEGORIES));
+      localStorage.removeItem("drill_order");
+      normalizeDrills();
+      localStorage.setItem("custom_drills", JSON.stringify(currentDrills));
+      showToast("Restored");
+      document.dispatchEvent(new CustomEvent("drills-updated"));
+    }
+  }
+  function factoryReset() {
+    if (confirm("WARNING: Delete ALL saved data and return to original factory state?")) {
+      localStorage.clear();
+      location.reload();
+    }
+  }
+  function resetStats() {
+    if (confirm("Reset stats?")) {
+      appStats.balls = 0;
+      appStats.drills = 0;
+      localStorage.setItem("nova_stats", JSON.stringify(appStats));
+      showToast("Statistics Reset");
+      document.dispatchEvent(new CustomEvent("stats-updated"));
+    }
+  }
+  function calculateRPMs(speed, spin, type) {
+    const baseSpeed = 970 + 630.5 * speed;
+    const spinFactor = 342 * spin;
+    let top, bot;
+    if (type === "top") {
+      top = baseSpeed + spinFactor;
+      bot = baseSpeed - spinFactor;
+    } else {
+      top = baseSpeed - spinFactor;
+      bot = baseSpeed + spinFactor;
+    }
+    return { top: Math.max(RPM_MIN, Math.min(RPM_MAX, Math.round(top))), bot: Math.max(RPM_MIN, Math.min(RPM_MAX, Math.round(bot))) };
+  }
+  function reverseCalculate(top, bot) {
+    const type = top >= bot ? "top" : "back";
+    const baseSpeed = (top + bot) / 2;
+    const speedRaw = (baseSpeed - 970) / 630.5;
+    const diff = Math.abs(top - bot) / 2;
+    const spinRaw = diff / 342;
+    return { speed: Math.round(speedRaw * 2) / 2, spin: Math.round(spinRaw * 2) / 2, type };
+  }
+  function formatNameForKey(key) {
+    return key.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  }
+  function importCustomDrills(csvText) {
+    try {
+      const lines = csvText.split(/\r?\n/);
+      const newCustomData = { "custom-a": [], "custom-b": [], "custom-c": [] };
+      for (let cat in userCustomDrills) {
+        userCustomDrills[cat].forEach((drill) => {
+          if (currentDrills[drill.key]) delete currentDrills[drill.key];
+        });
+      }
+      const customBuilder = {};
+      const factoryBuilder = {};
+      const getCatKey = (val) => {
+        val = val.trim().toUpperCase();
+        if (val === "A") return "custom-a";
+        if (val === "B") return "custom-b";
+        if (val === "C") return "custom-c";
+        if (val === "BASIC") return "basic";
+        if (val === "COMBINED") return "combined";
+        if (val === "COMPLEX") return "complex";
+        return null;
+      };
+      lines.forEach((line, index) => {
+        if (!line.trim() || index === 0 && line.toLowerCase().includes("speed;spin")) return;
+        const parts = line.split(line.includes(";") ? ";" : ",");
+        if (parts.length < 10) return;
+        const setVal = parts[0].trim();
+        const category = getCatKey(setVal);
+        if (!category) return;
+        const ballNum = parseFloat(parts[1]);
+        let nameRaw = parts[2].trim();
+        const speed = parseFloat(parts[3]);
+        let spin = parseFloat(parts[4]);
+        const type = parts[5].trim().toLowerCase();
+        const maxAllowed = SPIN_LIMITS[speed.toString()] ?? 10;
+        if (spin > maxAllowed) spin = maxAllowed;
+        const height = parseInt(parts[6]);
+        const drop = parseFloat(parts[7]);
+        const bpm = parseInt(parts[8]);
+        const freqPercent = (bpm - 30) / 0.6;
+        const reps = parseInt(parts[9]);
+        const motors = calculateRPMs(speed, spin, type);
+        const params = [motors.top, motors.bot, height, drop, freqPercent, reps, 1, speed, spin, type];
+        if (category.startsWith("custom")) {
+          const name = nameRaw.substring(0, 40);
+          const key = `cust_${category.split("-")[1].toUpperCase()}_${name.replace(/\s+/g, "_")}`;
+          if (!customBuilder[key]) {
+            let exists = newCustomData[category].find((d) => d.key === key);
+            if (!exists && newCustomData[category].length < 100) {
+              newCustomData[category].push({ name, key });
+            }
+            customBuilder[key] = { 1: {}, 2: {}, 3: {} };
+          }
+          for (let lvl = 1; lvl <= 3; lvl++) {
+            if (!customBuilder[key][lvl]) customBuilder[key][lvl] = {};
+            if (!customBuilder[key][lvl][ballNum]) customBuilder[key][lvl][ballNum] = [];
+            customBuilder[key][lvl][ballNum].push(params);
+          }
+        } else {
+          const lvlMatch = nameRaw.match(/\(Lvl (\d)\)$/i);
+          let level = 1;
+          let realName = nameRaw;
+          if (lvlMatch) {
+            level = parseInt(lvlMatch[1]);
+            realName = nameRaw.replace(lvlMatch[0], "").trim();
+          }
+          const key = realName.toLowerCase().replace(/ /g, "-");
+          if (!factoryBuilder[key]) factoryBuilder[key] = {};
+          if (!factoryBuilder[key][level]) factoryBuilder[key][level] = {};
+          if (!factoryBuilder[key][level][ballNum]) factoryBuilder[key][level][ballNum] = [];
+          factoryBuilder[key][level][ballNum].push(params);
+        }
+      });
+      for (let key in customBuilder) {
+        currentDrills[key] = {};
+        for (let lvl = 1; lvl <= 3; lvl++) {
+          const sortedBalls = Object.keys(customBuilder[key][lvl]).sort((a, b) => parseFloat(a) - parseFloat(b));
+          currentDrills[key][lvl] = sortedBalls.map((bKey) => customBuilder[key][lvl][bKey]);
+        }
+      }
+      userCustomDrills = newCustomData;
+      for (let key in factoryBuilder) {
+        if (!currentDrills[key]) currentDrills[key] = {};
+        for (let lvl in factoryBuilder[key]) {
+          const ballsObj = factoryBuilder[key][lvl];
+          const sortedBalls = Object.keys(ballsObj).sort((a, b) => parseFloat(a) - parseFloat(b));
+          currentDrills[key][lvl] = sortedBalls.map((bKey) => ballsObj[bKey]);
+        }
+      }
+      localStorage.setItem("custom_data", JSON.stringify(userCustomDrills));
+      saveDrillsToStorage();
+      showToast("Imported Successfully");
+      const menu = document.getElementById("theme-menu");
+      if (menu) menu.classList.remove("open");
+      return true;
+    } catch (e) {
+      console.error(e);
+      showToast("Import Failed");
+      return false;
+    }
+  }
+  function exportCustomDrills() {
+    let csvContent = "Set;Ball;Name;Speed;Spin;Type;Height;Drop;BPM;Reps\n";
+    const appendDrillToCSV = (setLabel, name, sequence) => {
+      sequence.forEach((stepOptions, stepIndex) => {
+        const ballNum = stepIndex + 1;
+        stepOptions.forEach((ball) => {
+          let speed = ball[7], spin = ball[8], type = ball[9];
+          if (speed === void 0) {
+            const rev = reverseCalculate(ball[0], ball[1]);
+            speed = rev.speed;
+            spin = rev.spin;
+            type = rev.type;
+          }
+          const bpm = Math.round(30 + ball[4] * 0.6);
+          const row = [setLabel, ballNum, name, speed, spin, type, ball[2], ball[3], bpm, ball[5]].join(";");
+          csvContent += row + "\n";
+        });
+      });
+    };
+    ["basic", "combined", "complex"].forEach((cat) => {
+      const catLabel = cat.charAt(0).toUpperCase() + cat.slice(1);
+      if (drillOrder[cat]) {
+        drillOrder[cat].forEach((key) => {
+          if (!currentDrills[key]) return;
+          for (let lvl = 1; lvl <= 3; lvl++) {
+            if (currentDrills[key][lvl] && currentDrills[key][lvl].length > 0) {
+              const nameWithLevel = `${formatNameForKey(key)} (Lvl ${lvl})`;
+              appendDrillToCSV(catLabel, nameWithLevel, currentDrills[key][lvl]);
+            }
+          }
+        });
+      }
+    });
+    const cats = { "custom-a": "A", "custom-b": "B", "custom-c": "C" };
+    for (let catKey in cats) {
+      const setLabel = cats[catKey];
+      const drillList = userCustomDrills[catKey];
+      if (drillList && drillList.length > 0) {
+        drillList.forEach((drill) => {
+          const sequence = currentDrills[drill.key] ? currentDrills[drill.key][1] : null;
+          if (sequence) {
+            appendDrillToCSV(setLabel, drill.name, sequence);
+          }
+        });
+      }
+    }
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "nova_drills_full.csv";
+    link.click();
+    const menu = document.getElementById("theme-menu");
+    if (menu) menu.classList.remove("open");
+  }
+
+  // js/cloud.js
+  var API_URL = "https://nova.varandal.de/api/collections/shared_drills/records";
+  function generateCode() {
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const digits = "0123456789";
+    let result = "";
+    for (let i = 0; i < 3; i++) result += letters.charAt(Math.floor(Math.random() * letters.length));
+    for (let i = 0; i < 3; i++) result += digits.charAt(Math.floor(Math.random() * digits.length));
+    return result;
+  }
+  async function uploadDrill(drillPayload) {
+    let code = null;
+    let retries = 0;
+    while (!code && retries < 5) {
+      const candidate = generateCode();
+      const exists = await checkCodeExists(candidate);
+      if (!exists) {
+        code = candidate;
+      }
+      retries++;
+    }
+    if (!code) throw new Error("Could not generate unique code. Server busy?");
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        share_code: code,
+        drill_data: drillPayload
+      })
+    });
+    if (!response.ok) throw new Error("Upload failed");
+    return code;
+  }
+  async function downloadDrill(code) {
+    const cleanCode = code.trim().toUpperCase();
+    const url = `${API_URL}?filter=(share_code='${cleanCode}')`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Network error");
+    const json = await response.json();
+    if (json.items && json.items.length > 0) {
+      return json.items[0].drill_data;
+    } else {
+      return null;
+    }
+  }
+  async function checkCodeExists(code) {
+    try {
+      const url = `${API_URL}?filter=(share_code='${code}')&fields=id`;
+      const res = await fetch(url);
+      const json = await res.json();
+      return json.items && json.items.length > 0;
+    } catch (e) {
+      return true;
+    }
+  }
+
+  // js/editor.js
+  var tempDrillData = null;
+  var editingDrillKey = null;
+  var selectedSaveCat = "custom-a";
+  function openEditor(key) {
+    editingDrillKey = key;
+    updateTitleDisplay(key);
+    const chk = document.getElementById("chk-drill-random");
+    if (chk) chk.checked = !!(currentDrills[key] && currentDrills[key].random);
+    if (currentDrills[key] && currentDrills[key][selectedLevel]) {
+      tempDrillData = JSON.parse(JSON.stringify(currentDrills[key][selectedLevel]));
+    } else {
+      const def = calculateRPMs2(5, 2, "top");
+      tempDrillData = [[[def.top, def.bot, 50, 0, 50, 1, 1, 5, 2, "top"]]];
+    }
+    renderEditor();
+    const btnDel = document.querySelector(".btn-delete-drill");
+    if (btnDel) {
+      btnDel.disabled = !key.startsWith("cust_");
+      btnDel.style.opacity = key.startsWith("cust_") ? "1" : "0.5";
+    }
+    document.getElementById("editor-modal").classList.add("open");
+    toggleBodyScroll(true);
+  }
+  function closeEditor() {
+    document.getElementById("editor-modal").classList.remove("open");
+    editingDrillKey = null;
+    tempDrillData = null;
+    toggleBodyScroll(false);
+  }
+  function saveDrillChanges() {
+    if (!editingDrillKey || !tempDrillData) return;
+    const chk = document.getElementById("chk-drill-random");
+    if (chk) currentDrills[editingDrillKey].random = chk.checked;
+    tempDrillData.forEach((step) => {
+      step.forEach((ball) => {
+        if (ball[7] === void 0) {
+          const r = reverseCalculate2(ball[0], ball[1]);
+          ball[7] = r.speed;
+          ball[8] = r.spin;
+          ball[9] = r.type;
+        }
+        const maxSpin = SPIN_LIMITS[ball[7].toString()] ?? 10;
+        if (ball[8] > maxSpin) ball[8] = maxSpin;
+        const res = calculateRPMs2(ball[7], ball[8], ball[9]);
+        ball[0] = res.top;
+        ball[1] = res.bot;
+        ball[2] = clamp(ball[2], -50, 100);
+        ball[3] = clamp(ball[3], -10, 10);
+        ball[4] = clamp(ball[4], 0, 100);
+        ball[5] = clamp(ball[5], 1, 200);
+        if (ball[6] === void 0) ball[6] = 1;
+        ball[6] = ball[6] === 1 ? 1 : 0;
+        const currentDrop = Math.abs(ball[3]);
+        const scatter = ball[10] || 0;
+        if (currentDrop + scatter > 10) {
+          ball[10] = clamp(10 - currentDrop, 0, 10);
+        }
+      });
+    });
+    currentDrills[editingDrillKey][selectedLevel] = tempDrillData;
+    saveDrillsToStorage();
+    closeEditor();
+    showToast("Configuration saved");
+    document.dispatchEvent(new CustomEvent("drills-updated"));
+  }
+  function calculateRPMs2(speed, spin, type) {
+    const baseSpeed = 970 + 630.5 * speed;
+    const spinFactor = 342 * spin;
+    let top, bot;
+    if (type === "top") {
+      top = baseSpeed + spinFactor;
+      bot = baseSpeed - spinFactor;
+    } else {
+      top = baseSpeed - spinFactor;
+      bot = baseSpeed + spinFactor;
+    }
+    return { top: Math.round(clamp(top, RPM_MIN, RPM_MAX)), bot: Math.round(clamp(bot, RPM_MIN, RPM_MAX)) };
+  }
+  function reverseCalculate2(top, bot) {
+    const type = top >= bot ? "top" : "back";
+    const baseSpeed = (top + bot) / 2;
+    const speedRaw = (baseSpeed - 970) / 630.5;
+    const diff = Math.abs(top - bot) / 2;
+    const spinRaw = diff / 342;
+    return { speed: Math.round(speedRaw * 2) / 2, spin: Math.round(spinRaw * 2) / 2, type };
+  }
+  function renderEditor() {
+    const modalBody = document.getElementById("editor-body");
+    modalBody.innerHTML = "";
+    const shuffleContainer = document.querySelector(".random-toggle-container");
+    if (shuffleContainer) {
+      shuffleContainer.style.display = tempDrillData && tempDrillData.length > 1 ? "flex" : "none";
+    }
+    const isConnected = bleState.isConnected;
+    tempDrillData.forEach((stepOptions, stepIndex) => {
+      const isActive = stepOptions[0][6] === void 0 ? 1 : stepOptions[0][6];
+      if (stepIndex > 0) {
+        const swapDiv = document.createElement("div");
+        swapDiv.className = "swap-zone";
+        swapDiv.innerHTML = `<button class="btn-swap" onclick="window.handleSwapSteps(${stepIndex - 1}, ${stepIndex})">\u21C5</button>`;
+        modalBody.appendChild(swapDiv);
+      }
+      const groupDiv = document.createElement("div");
+      groupDiv.className = `ball-group ${isActive ? "" : "inactive"}`;
+      const isSingle = stepOptions.length === 1;
+      const currentDrop = stepOptions[0][3];
+      const currentScatter = stepOptions[0][10] || 0;
+      const maxScatter = 10 - Math.abs(currentDrop);
+      const scatterHtml = isSingle ? `
+            <div style="display:flex; align-items:center; gap:5px; margin-left:auto; margin-right:10px;">
+                <div class="editor-field" style="flex-direction:row; align-items:center; gap:6px; padding:2px 6px; background:var(--bg); border:1px solid var(--border);">
+                    <label style="font-size:0.6rem; color:var(--text-light); font-weight:800; text-transform:uppercase;">Scatter</label>
+                    <input type="number" inputmode="decimal" 
+                           value="${currentScatter}" 
+                           step="0.5" min="0" max="${maxScatter}"
+                           style="width:40px; text-align:center; font-weight:bold; color:var(--primary); font-size:0.9rem;"
+                           onchange="window.handleScatterChange(${stepIndex}, this.value)">
+                </div>
+            </div>` : "";
+      const plusBtn = `
+            <button class="btn-add-opt" title="Duplicate Ball" onclick="window.handleAddSequenceStep(${stepIndex})">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+            </button>`;
+      groupDiv.innerHTML = `
+            <div class="group-title">
+                <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                    <span>Ball ${stepIndex + 1}</span>
+                    <div class="ball-toggle ${isActive ? "active" : ""}" onclick="window.handleToggleBallActive(${stepIndex})">
+                        <div class="toggle-switch"></div>
+                    </div>
+                    ${scatterHtml}
+                </div>
+                ${plusBtn}
+            </div>`;
+      stepOptions.forEach((ballParams, optIndex) => {
+        if (ballParams[7] === void 0) {
+          const rev = reverseCalculate2(ballParams[0], ballParams[1]);
+          ballParams[7] = clamp(rev.speed, 0, 10);
+          ballParams[8] = clamp(rev.spin, 0, 10);
+          ballParams[9] = rev.type;
+        }
+        const speed = ballParams[7];
+        const spin = ballParams[8];
+        const type = ballParams[9];
+        const currentMaxSpin = SPIN_LIMITS[speed.toString()] ?? 10;
+        const spinStyle = type === "back" ? "background:var(--danger); color:#fff; border-radius:4px;" : "";
+        const bpmValue = Math.round(30 + ballParams[4] * 0.6);
+        const optDiv = document.createElement("div");
+        optDiv.className = "option-card";
+        const toggleHtml = `
+                <div class="spin-row">
+                    <span class="spin-label">Rotation:</span>
+                    <div class="spin-capsule">
+                        <div class="sc-opt ${type === "top" ? "active" : ""}" 
+                             style="${type === "top" ? "background:#0984e3" : ""}"
+                             onclick="window.handleTypeToggle(${stepIndex}, ${optIndex}, 'top')">TOP</div>
+                        <div class="sc-opt ${type === "back" ? "active" : ""}" 
+                             style="${type === "back" ? "background:var(--danger)" : ""}"
+                             onclick="window.handleTypeToggle(${stepIndex}, ${optIndex}, 'back')">BACK</div>
+                    </div>
+                </div>`;
+        const inputsHtml = `
+                <div class="editor-grid">
+                    <div class="editor-field">
+                        <div class="field-header"><label>Speed</label><span class="range-hint">0-10</span></div>
+                        <input type="number" inputmode="decimal" id="inp-speed-${stepIndex}-${optIndex}" value="${speed}" step="0.5" min="0" max="10"
+                            onchange="window.handleEditorInput(${stepIndex}, ${optIndex}, 7, this.value)">
+                    </div>
+                    <div class="editor-field">
+                        <div class="field-header"><label>Spin</label><span class="range-hint" id="lbl-spin-${stepIndex}-${optIndex}">Max ${currentMaxSpin}</span></div>
+                        <input type="number" inputmode="decimal" id="inp-spin-${stepIndex}-${optIndex}" value="${spin}" step="0.5" min="0" max="${currentMaxSpin}"
+                            style="${spinStyle}"
+                            oninput="window.handleEditorInput(${stepIndex}, ${optIndex}, 8, this.value)">
+                    </div>
+                    <div class="editor-field">
+                        <div class="field-header"><label>Height</label><span class="range-hint">-50/100</span></div>
+                        <input type="number" inputmode="decimal" value="${ballParams[2]}" step="1" min="-50" max="100"
+                            oninput="window.handleEditorInput(${stepIndex}, ${optIndex}, 2, this.value)">
+                    </div>
+                    <div class="editor-field">
+                        <div class="field-header"><label>Drop</label><span class="range-hint">L/R</span></div>
+                        <input type="number" inputmode="decimal" value="${ballParams[3]}" step="0.5" min="-10" max="10"
+                            onchange="window.handleEditorInput(${stepIndex}, ${optIndex}, 3, this.value)">
+                    </div>
+                    <div class="editor-field">
+                        <div class="field-header"><label>BPM</label><span class="range-hint">30-90</span></div>
+                        <input type="number" inputmode="decimal" value="${bpmValue}" step="1" min="30" max="90"
+                            oninput="window.handleEditorInput(${stepIndex}, ${optIndex}, 4, this.value)">
+                    </div>
+                    <div class="editor-field">
+                        <div class="field-header"><label>Reps</label><span class="range-hint">#</span></div>
+                        <input type="number" inputmode="decimal" value="${ballParams[5]}" step="1" min="1" max="100"
+                            oninput="window.handleEditorInput(${stepIndex}, ${optIndex}, 5, this.value)">
+                    </div>
+                </div>`;
+        const isLastBall = tempDrillData.length === 1 && stepOptions.length === 1;
+        const actionsHtml = `
+                <div class="card-actions">
+                     <button class="btn-action btn-act-test" 
+                             onclick="window.handleTestBall(${stepIndex}, ${optIndex})" 
+                             ${isConnected && isActive ? "" : "disabled"}>Test</button>
+                     <button class="btn-action btn-act-clone" 
+                             onclick="window.handleAddVariant(${stepIndex}, ${optIndex})">+ Variant</button>
+                     <button class="btn-action btn-act-del" 
+                             onclick="window.handleDeleteBall(${stepIndex}, ${optIndex})" 
+                             ${isLastBall ? "disabled" : ""}>Delete</button>
+                </div>
+            `;
+        const label = stepOptions.length > 1 ? `<span class="option-label">Variant ${optIndex + 1}</span>` : "";
+        optDiv.innerHTML = label + toggleHtml + inputsHtml + actionsHtml;
+        groupDiv.appendChild(optDiv);
+      });
+      modalBody.appendChild(groupDiv);
+    });
+    const addZone = document.createElement("div");
+    addZone.className = "swap-zone";
+    addZone.style.margin = "-10px 0 20px 0";
+    addZone.innerHTML = `
+        <button class="btn-swap" 
+                style="color:var(--primary); border-color:var(--primary); width:32px; height:32px;" 
+                onclick="window.handleAddSequenceStep(${tempDrillData.length - 1})" 
+                title="Add New Ball">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </button>`;
+    modalBody.appendChild(addZone);
+  }
+  window.handleScatterChange = (stepIdx, value) => {
+    if (!tempDrillData) return;
+    const ball = tempDrillData[stepIdx][0];
+    let val = parseFloat(value);
+    if (isNaN(val)) val = 0;
+    const currentDrop = Math.abs(ball[3]);
+    if (val + currentDrop > 10) {
+      val = 10 - currentDrop;
+      showToast(`Limit is ${val} for this Drop position`);
+    }
+    ball[10] = clamp(val, 0, 10);
+    renderEditor();
+  };
+  window.handleEditorInput = (stepIdx, optIdx, paramIdx, value) => {
+    if (!tempDrillData) return;
+    const ball = tempDrillData[stepIdx][optIdx];
+    let val = parseFloat(value);
+    if (isNaN(val)) val = 0;
+    if (paramIdx === 4) {
+      let percent = (val - 30) / 0.6;
+      ball[paramIdx] = clamp(percent, 0, 100);
+    } else if (paramIdx === 3) {
+      val = clamp(val, -10, 10);
+      ball[paramIdx] = val;
+      const currentScatter = ball[10] || 0;
+      if (Math.abs(val) + currentScatter > 10) {
+        ball[10] = 10 - Math.abs(val);
+      }
+      renderEditor();
+      return;
+    } else {
+      ball[paramIdx] = val;
+    }
+    if (paramIdx === 7) {
+      const maxAllowed = SPIN_LIMITS[val.toString()] ?? 10;
+      if (ball[8] > maxAllowed) ball[8] = maxAllowed;
+      const spinInput = document.getElementById(`inp-spin-${stepIdx}-${optIdx}`);
+      const spinLabel = document.getElementById(`lbl-spin-${stepIdx}-${optIdx}`);
+      if (spinInput) {
+        spinInput.max = maxAllowed;
+        spinInput.value = ball[8];
+      }
+      if (spinLabel) spinLabel.textContent = `Max ${maxAllowed}`;
+    }
+    if (paramIdx === 7 || paramIdx === 8) {
+      const res = calculateRPMs2(ball[7], ball[8], ball[9]);
+      ball[0] = res.top;
+      ball[1] = res.bot;
+    }
+  };
+  window.handleTypeToggle = (stepIdx, optIdx, newType) => {
+    if (!tempDrillData) return;
+    const ball = tempDrillData[stepIdx][optIdx];
+    if (ball[9] === newType) return;
+    ball[9] = newType;
+    const res = calculateRPMs2(ball[7], ball[8], ball[9]);
+    ball[0] = res.top;
+    ball[1] = res.bot;
+    renderEditor();
+  };
+  window.handleSwapSteps = (idxA, idxB) => {
+    if (!tempDrillData) return;
+    [tempDrillData[idxA], tempDrillData[idxB]] = [tempDrillData[idxB], tempDrillData[idxA]];
+    renderEditor();
+  };
+  window.handleToggleBallActive = (stepIdx) => {
+    if (!tempDrillData) return;
+    const currentVal = tempDrillData[stepIdx][0][6] === void 0 ? 1 : tempDrillData[stepIdx][0][6];
+    tempDrillData[stepIdx].forEach((opt) => opt[6] = currentVal === 1 ? 0 : 1);
+    renderEditor();
+  };
+  window.handleAddSequenceStep = (sourceStepIndex) => {
+    const fullStepClone = JSON.parse(JSON.stringify(tempDrillData[sourceStepIndex]));
+    tempDrillData.splice(sourceStepIndex + 1, 0, fullStepClone);
+    renderEditor();
+  };
+  window.handleAddVariant = (stepIndex, sourceOptIndex) => {
+    const baseConfig = JSON.parse(JSON.stringify(tempDrillData[stepIndex][sourceOptIndex]));
+    tempDrillData[stepIndex].push(baseConfig);
+    renderEditor();
+  };
+  window.handleDeleteBall = (stepIdx, optIdx) => {
+    if (tempDrillData.length <= 1 && tempDrillData[0].length <= 1) {
+      showToast("Cannot delete last ball");
+      return;
+    }
+    tempDrillData[stepIdx].splice(optIdx, 1);
+    if (tempDrillData[stepIdx].length === 0) tempDrillData.splice(stepIdx, 1);
+    renderEditor();
+  };
+  window.handleSaveAsDrill = () => {
+    selectedSaveCat = "custom-a";
+    const nameInput = document.getElementById("save-name");
+    if (nameInput) nameInput.value = "";
+    const switchEl = document.getElementById("save-cat-switch");
+    if (switchEl) {
+      Array.from(switchEl.children).forEach((c) => c.classList.remove("active"));
+      if (switchEl.children[0]) switchEl.children[0].classList.add("active");
+    }
+    document.getElementById("save-as-modal").classList.add("open");
+    setTimeout(() => {
+      if (nameInput) nameInput.focus();
+    }, 100);
+  };
+  window.closeSaveAsModal = () => {
+    document.getElementById("save-as-modal").classList.remove("open");
+  };
+  window.selectSaveCategory = (val, btn) => {
+    selectedSaveCat = val;
+    const parent = btn.parentElement;
+    Array.from(parent.children).forEach((c) => c.classList.remove("active"));
+    btn.classList.add("active");
+  };
+  window.performSaveAs = () => {
+    const newName = document.getElementById("save-name").value.trim();
+    if (!newName) {
+      showToast("Enter a name");
+      return;
+    }
+    if (newName.length > 40) {
+      showToast("Name too long");
+      return;
+    }
+    if (!/^[a-zA-Z0-9.\-#\[\]><\+\)\( ]+$/.test(newName)) {
+      showToast("Invalid characters");
+      return;
+    }
+    const targetCat = selectedSaveCat;
+    if (userCustomDrills[targetCat].length >= 100) {
+      showToast("That bank is full (Max 100)!");
+      return;
+    }
+    const catChar = targetCat.split("-")[1].toUpperCase();
+    const newKey = `cust_${catChar}_${newName.replace(/\s+/g, "_")}_${Date.now()}`;
+    userCustomDrills[targetCat].push({ name: newName, key: newKey });
+    let baseDrill = currentDrills[editingDrillKey] || { 1: [], 2: [], 3: [] };
+    const newDrillData = JSON.parse(JSON.stringify(baseDrill));
+    newDrillData[selectedLevel] = tempDrillData;
+    const chk = document.getElementById("chk-drill-random");
+    if (chk) newDrillData.random = chk.checked;
+    currentDrills[newKey] = newDrillData;
+    saveDrillsToStorage();
+    localStorage.setItem("custom_data", JSON.stringify(userCustomDrills));
+    window.closeSaveAsModal();
+    closeEditor();
+    openEditor(newKey);
+    document.dispatchEvent(new CustomEvent("drills-updated"));
+    const tabBtn = document.querySelector(`.tab-btn[onclick*="${targetCat}"]`);
+    if (tabBtn) switchTab(targetCat, tabBtn);
+    showToast(`Saved to ${catChar}`);
+  };
+  window.handleDeleteDrill = () => {
+    if (!editingDrillKey || !editingDrillKey.startsWith("cust_")) return;
+    if (!confirm("Delete this drill?")) return;
+    const parts = editingDrillKey.split("_");
+    const catKey = `custom-${parts[1].toLowerCase()}`;
+    if (userCustomDrills[catKey]) {
+      userCustomDrills[catKey] = userCustomDrills[catKey].filter((d) => d.key !== editingDrillKey);
+    }
+    delete currentDrills[editingDrillKey];
+    saveDrillsToStorage();
+    localStorage.setItem("custom_data", JSON.stringify(userCustomDrills));
+    closeEditor();
+    showToast("Drill Deleted");
+    document.dispatchEvent(new CustomEvent("drills-updated"));
+  };
+  window.handleRenameDrill = () => {
+    if (!editingDrillKey || !editingDrillKey.startsWith("cust_")) return;
+    const nameEl = document.getElementById("editor-drill-name");
+    const currentName = nameEl ? nameEl.textContent : "New Drill";
+    const newName = prompt("Rename Drill:", currentName);
+    if (!newName || newName === currentName) return;
+    if (newName.length > 40) {
+      showToast("Name too long");
+      return;
+    }
+    const parts = editingDrillKey.split("_");
+    const catChar = parts[1];
+    const catListKey = `custom-${catChar.toLowerCase()}`;
+    const newKey = `cust_${catChar}_${newName.replace(/\s+/g, "_")}_${Date.now()}`;
+    const list = userCustomDrills[catListKey];
+    const entry = list.find((d) => d.key === editingDrillKey);
+    if (entry) {
+      entry.name = newName;
+      entry.key = newKey;
+      currentDrills[newKey] = currentDrills[editingDrillKey];
+      delete currentDrills[editingDrillKey];
+      editingDrillKey = newKey;
+      localStorage.setItem("custom_data", JSON.stringify(userCustomDrills));
+      saveDrillsToStorage();
+      updateTitleDisplay(newKey);
+      showToast("Renamed");
+      document.dispatchEvent(new CustomEvent("drills-updated"));
+    }
+  };
+  function updateTitleDisplay(key) {
+    let displayName = key;
+    let isCustom = false;
+    if (key.startsWith("cust_")) {
+      isCustom = true;
+      const parts = key.split("_");
+      if (parts.length >= 3) {
+        const catKey = `custom-${parts[1].toLowerCase()}`;
+        const entry = userCustomDrills[catKey]?.find((d) => d.key === key);
+        displayName = entry ? entry.name : key.replace(/^cust_[A-C]_/, "");
+      }
+    } else {
+      displayName = key.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+    }
+    const nameEl = document.getElementById("editor-drill-name");
+    const iconEl = document.getElementById("editor-drill-edit-icon");
+    const container = document.querySelector("#editor-modal .title-container");
+    if (nameEl) nameEl.textContent = displayName;
+    if (isCustom) {
+      if (iconEl) iconEl.style.display = "inline-block";
+      if (container) {
+        container.style.pointerEvents = "auto";
+        container.onclick = () => window.handleRenameDrill();
+      }
+    } else {
+      if (iconEl) iconEl.style.display = "none";
+      if (container) {
+        container.style.pointerEvents = "none";
+        container.onclick = null;
+      }
+    }
+  }
+  window.handleTestBall = async (stepIdx, optIdx) => {
+    if (!bleState.isConnected) {
+      showToast("Device not connected");
+      return;
+    }
+    const d = tempDrillData[stepIdx][optIdx];
+    const ballData = packBall(d[0], d[1], d[2], d[3], d[4], 1);
+    const buffer = new ArrayBuffer(31);
+    const view = new DataView(buffer);
+    view.setUint8(0, 129);
+    view.setUint16(1, 28, true);
+    view.setUint8(3, 1);
+    view.setUint16(4, 1, true);
+    view.setUint8(6, 0);
+    new Uint8Array(buffer).set(ballData, 7);
+    try {
+      await sendPacket(new Uint8Array(buffer));
+      showToast("Test Ball Fired");
+    } catch (e) {
+      console.error(e);
+      showToast("Test Failed");
+    }
+  };
+  window.handleTestCombo = async () => {
+    if (!bleState.isConnected) {
+      showToast("Device not connected");
+      return;
+    }
+    if (!tempDrillData || tempDrillData.length === 0) return;
+    const balls = [];
+    tempDrillData.forEach((stepOptions) => {
+      if (stepOptions[0][6] === 0) return;
+      const chosen = stepOptions[0];
+      const d = [...chosen];
+      const scatter = d[10] || 0;
+      if (scatter > 0) {
+        const currentDrop = d[3];
+        const minDrop = currentDrop - scatter;
+        const maxDrop = currentDrop + scatter;
+        const span = maxDrop - minDrop;
+        const steps = Math.floor(span / 0.5);
+        if (steps > 0) {
+          const randomStep = Math.floor(Math.random() * (steps + 1));
+          d[3] = clamp(minDrop + randomStep * 0.5, -10, 10);
+        }
+      }
+      balls.push(packBall(d[0], d[1], d[2], d[3], d[4], 1));
+    });
+    if (balls.length === 0) {
+      showToast("No active balls");
+      return;
+    }
+    const mbEl = document.getElementById("input-maxballs");
+    const maxBalls = mbEl && parseInt(mbEl.value) > 0 ? parseInt(mbEl.value) : 7;
+    if (balls.length > maxBalls) {
+      balls.splice(maxBalls);
+      showToast(`Test: nur die ersten ${maxBalls} Baelle (ganzer Drill ueber Start)`);
+    }
+    const totalLen = 7 + balls.length * 24;
+    const buffer = new ArrayBuffer(totalLen);
+    const view = new DataView(buffer);
+    const uint8 = new Uint8Array(buffer);
+    view.setUint8(0, 129);
+    view.setUint16(1, 4 + balls.length * 24, true);
+    view.setUint8(3, 1);
+    view.setUint16(4, 1, true);
+    view.setUint8(6, 0);
+    let offset = 7;
+    balls.forEach((b) => {
+      uint8.set(b, offset);
+      offset += 24;
+    });
+    try {
+      await sendPacket(uint8);
+      showToast("Testing Drill...");
+    } catch (e) {
+      console.error(e);
+      showToast("Test Failed");
+    }
+  };
+  window.handleShareDrill = async () => {
+    if (!editingDrillKey || !tempDrillData) return;
+    let drillName = "Shared Drill";
+    const nameEl = document.getElementById("editor-drill-name");
+    if (nameEl) drillName = nameEl.textContent;
+    const payload = {
+      name: drillName,
+      level: selectedLevel,
+      params: tempDrillData,
+      random: document.getElementById("chk-drill-random")?.checked || false
+    };
+    const btn = document.querySelector(".btn-header-share");
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<span style="font-size:10px">...</span>';
+    btn.disabled = true;
+    try {
+      const code = await uploadDrill(payload);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(code);
+        alert(`Drill Shared Successfully!
+
+Code: ${code}
+
+(Copied to clipboard)`);
+      } else {
+        prompt("Drill Shared! Copy this code:", code);
+      }
+    } catch (e) {
+      console.error("Share Error:", e);
+      showToast("Share failed. Check network.");
+    } finally {
+      btn.innerHTML = originalHtml;
+      btn.disabled = false;
+    }
+  };
+
+  // js/ui.js
+  window.handleCreateNewDrill = (category) => {
+    if (userCustomDrills[category].length >= 100) {
+      showToast("Category is full (Max 100)");
+      return;
+    }
+    const newName = prompt("Enter Name for New Drill:");
+    if (!newName) return;
+    if (newName.length > 25) {
+      showToast("Name too long (Max 25)");
+      return;
+    }
+    if (!/^[a-zA-Z0-9.\-#\[\]><\+\)\( ]+$/.test(newName)) {
+      showToast("Invalid characters");
+      return;
+    }
+    const catChar = category.split("-")[1].toUpperCase();
+    const newKey = `cust_${catChar}_${newName.replace(/\s+/g, "_")}_${Date.now()}`;
+    userCustomDrills[category].push({ name: newName, key: newKey });
+    currentDrills[newKey] = {
+      1: [[[4123, 2233, 50, 0, 50, 1, 1, 5, 2, "top"]]],
+      2: [],
+      3: [],
+      random: false
+    };
+    localStorage.setItem("custom_data", JSON.stringify(userCustomDrills));
+    saveDrillsToStorage();
+    renderDrillButtons();
+    showToast(`Created ${newName}`);
+    openEditor(newKey);
+  };
+  window.allowTabDrop = (e) => {
+    e.preventDefault();
+  };
+  window.handleTabDrop = (e, targetCat) => {
+    e.preventDefault();
+    const key = e.dataTransfer.getData("text/plain");
+    if (!key) return;
+    let sourceCat = null;
+    let drillObj = null;
+    let drillIndex = -1;
+    ["custom-a", "custom-b", "custom-c"].forEach((cat) => {
+      const idx = userCustomDrills[cat].findIndex((d) => d.key === key);
+      if (idx !== -1) {
+        sourceCat = cat;
+        drillIndex = idx;
+        drillObj = userCustomDrills[cat][idx];
+      }
+    });
+    if (!sourceCat) return;
+    if (sourceCat === targetCat) return;
+    if (userCustomDrills[targetCat].length >= 100) {
+      showToast(`Bank ${targetCat.split("-")[1].toUpperCase()} is full!`);
+      return;
+    }
+    const targetChar = targetCat.split("-")[1].toUpperCase();
+    let newKey = key.replace(/^cust_[ABC]_/i, `cust_${targetChar}_`);
+    if (currentDrills[newKey]) {
+      newKey = `${newKey}_${Date.now()}`;
+    }
+    currentDrills[newKey] = JSON.parse(JSON.stringify(currentDrills[key]));
+    userCustomDrills[targetCat].push({
+      name: drillObj.name,
+      key: newKey
+    });
+    userCustomDrills[sourceCat].splice(drillIndex, 1);
+    delete currentDrills[key];
+    localStorage.setItem("custom_data", JSON.stringify(userCustomDrills));
+    saveDrillsToStorage();
+    renderDrillButtons();
+    showToast(`Moved to ${targetChar}`);
+    const targetBtn = document.querySelector(`.tab-btn[onclick*="${targetCat}"]`);
+    if (targetBtn) switchTab2(targetCat, targetBtn);
+  };
+  function renderDrillButtons() {
+    ["basic", "combined", "complex"].forEach((cat) => {
+      const container = document.getElementById(`view-${cat}`);
+      if (!container) return;
+      container.innerHTML = "";
+      if (drillOrder[cat]) {
+        drillOrder[cat].forEach((key) => {
+          if (!currentDrills[key]) return;
+          createButton(container, key, formatDrillName(key), true, cat);
+        });
+      }
+    });
+    ["custom-a", "custom-b", "custom-c"].forEach((cat) => {
+      const container = document.getElementById(`view-${cat}`);
+      if (!container) return;
+      container.innerHTML = "";
+      userCustomDrills[cat].forEach((item) => {
+        createButton(container, item.key, item.name, true, cat);
+      });
+      const addWrapper = document.createElement("div");
+      addWrapper.style.cssText = "width:100%; display:flex; justify-content:center; margin:15px 0 10px 0;";
+      const addBtn = document.createElement("button");
+      addBtn.className = "btn-swap";
+      addBtn.style.cssText = "width:40px; height:40px; color:var(--primary); border-color:var(--primary); font-size:1.2rem; box-shadow:0 2px 5px rgba(0,0,0,0.1);";
+      addBtn.title = "Create New Drill";
+      addBtn.innerHTML = `
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        `;
+      addBtn.onclick = () => window.handleCreateNewDrill(cat);
+      addWrapper.appendChild(addBtn);
+      container.appendChild(addWrapper);
+    });
+    updateLastPlayedHighlight();
+  }
+  function updateLastPlayedHighlight() {
+    document.querySelectorAll(".btn-drill").forEach((b) => b.classList.remove("last-played"));
+    if (lastPlayedDrill) {
+      const btn = document.querySelector(`.btn-drill[data-key="${lastPlayedDrill}"]`);
+      if (btn) btn.classList.add("last-played");
+    }
+  }
+  function createButton(container, key, label, allowSort, category) {
+    const btn = document.createElement("button");
+    btn.className = "btn-drill";
+    btn.dataset.key = key;
+    const iconDiv = document.createElement("div");
+    iconDiv.className = "drill-icon";
+    for (let i = 0; i < 4; i++) {
+      iconDiv.appendChild(document.createElement("div")).className = "d-dot";
+    }
+    btn.appendChild(iconDiv);
+    const span = document.createElement("span");
+    span.textContent = label;
+    btn.appendChild(span);
+    if (currentDrills[key] && currentDrills[key].random) {
+      const rMark = document.createElement("div");
+      rMark.className = "mark-random";
+      rMark.textContent = "R";
+      btn.appendChild(rMark);
+    }
+    if (allowSort) {
+      const grip = document.createElement("div");
+      grip.className = "drill-grab-handle";
+      grip.innerHTML = "\u2261";
+      grip.title = "Drag to reorder";
+      btn.draggable = false;
+      const enableDrag = () => {
+        btn.draggable = true;
+      };
+      const disableDrag = () => {
+        btn.draggable = false;
+      };
+      grip.addEventListener("mousedown", enableDrag);
+      grip.addEventListener("touchstart", enableDrag, { passive: true });
+      grip.addEventListener("mouseup", disableDrag);
+      grip.addEventListener("mouseleave", disableDrag);
+      grip.addEventListener("touchend", disableDrag);
+      btn.addEventListener("dragstart", (e) => {
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", key);
+        btn.classList.add("dragging");
+      });
+      btn.addEventListener("dragend", () => {
+        btn.classList.remove("dragging");
+        btn.draggable = false;
+        handleReorder(container, category);
+      });
+      btn.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        const draggingItem = container.querySelector(".dragging");
+        if (draggingItem && draggingItem !== btn) {
+          const box = btn.getBoundingClientRect();
+          const offset = e.clientY - box.top - box.height / 2;
+          if (offset < 0) {
+            container.insertBefore(draggingItem, btn);
+          } else {
+            container.insertBefore(draggingItem, btn.nextSibling);
+          }
+        }
+      });
+      grip.onclick = (e) => e.stopPropagation();
+      btn.appendChild(grip);
+    }
+    btn.onclick = (e) => {
+      if (btn.classList.contains("dragging")) return;
+      window.handleDrillClick(key, btn);
+    };
+    let pressTimer;
+    let startX = 0, startY = 0;
+    const start = (e) => {
+      if (e.target.closest(".drill-grab-handle")) return;
+      if (btn.classList.contains("running")) return;
+      if (e.type === "touchstart") {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+      } else {
+        startX = e.clientX;
+        startY = e.clientY;
+      }
+      pressTimer = setTimeout(() => {
+        if (navigator.vibrate) navigator.vibrate(50);
+        openEditor(key);
+      }, 600);
+    };
+    const cancel = () => clearTimeout(pressTimer);
+    const move = (e) => {
+      if (!pressTimer) return;
+      let curX, curY;
+      if (e.type === "touchmove") {
+        curX = e.touches[0].clientX;
+        curY = e.touches[0].clientY;
+      } else {
+        curX = e.clientX;
+        curY = e.clientY;
+      }
+      const diffX = Math.abs(curX - startX);
+      const diffY = Math.abs(curY - startY);
+      if (diffX > 10 || diffY > 10) {
+        clearTimeout(pressTimer);
+        pressTimer = null;
+      }
+    };
+    btn.addEventListener("mousedown", start);
+    btn.addEventListener("mousemove", move);
+    btn.addEventListener("mouseup", cancel);
+    btn.addEventListener("mouseleave", cancel);
+    btn.addEventListener("touchstart", start, { passive: true });
+    btn.addEventListener("touchmove", move, { passive: true });
+    btn.addEventListener("touchend", cancel);
+    btn.addEventListener("touchcancel", cancel);
+    container.appendChild(btn);
+  }
+  function handleReorder(container, category) {
+    const buttons = Array.from(container.querySelectorAll(".btn-drill"));
+    const newKeys = buttons.map((b) => b.dataset.key);
+    if (["basic", "combined", "complex"].includes(category)) {
+      if (newKeys.length === drillOrder[category].length) {
+        drillOrder[category] = newKeys;
+        saveDrillOrder();
+      }
+    } else {
+      if (newKeys.length === userCustomDrills[category].length) {
+        const oldList = userCustomDrills[category];
+        const newList = [];
+        newKeys.forEach((k) => {
+          const item = oldList.find((d) => d.key === k);
+          if (item) newList.push(item);
+        });
+        userCustomDrills[category] = newList;
+        localStorage.setItem("custom_data", JSON.stringify(userCustomDrills));
+      }
+    }
+  }
+  function updateDrillButtonStates() {
+    const btns = document.querySelectorAll(".btn-drill");
+    btns.forEach((b) => {
+      b.style.opacity = bleState.isConnected ? "1" : "0.6";
+    });
+    const btnConnect = document.getElementById("btn-connect");
+    const statusText = document.getElementById("status-text");
+    if (btnConnect && statusText) {
+      if (bleState.isConnected) {
+        btnConnect.textContent = "Disconnect";
+        btnConnect.classList.add("connected");
+        statusText.textContent = "Connected";
+        statusText.style.color = "#00b894";
+      } else {
+        btnConnect.textContent = "Connect";
+        btnConnect.classList.remove("connected");
+        statusText.textContent = "Disconnected";
+        statusText.style.color = "var(--text-light)";
+      }
+    }
+  }
+  function updateStatsUI() {
+    const el = document.getElementById("stats-display");
+    if (el) el.textContent = `Balls: ${appStats.balls} | Drills: ${appStats.drills}`;
+  }
+  function toggleMenu() {
+    const m = document.getElementById("theme-menu");
+    if (m) m.classList.toggle("open");
+  }
+  function setTheme(themeName) {
+    document.documentElement.setAttribute("data-theme", themeName);
+    localStorage.setItem("nova_theme_pref", themeName);
+    toggleMenu();
+  }
+  function switchTab2(catName, btn) {
+    const tabs = ["basic", "combined", "complex", "custom-a", "custom-b", "custom-c"];
+    tabs.forEach((c) => {
+      const el = document.getElementById("view-" + c);
+      if (el) el.classList.add("hidden");
+    });
+    const target = document.getElementById("view-" + catName);
+    if (target) target.classList.remove("hidden");
+    document.querySelectorAll(".tab-btn").forEach((t) => t.classList.remove("active"));
+    if (btn) btn.classList.add("active");
+    const diffGroup = document.getElementById("grp-difficulty");
+    if (diffGroup) {
+      diffGroup.style.display = ["custom-a", "custom-b", "custom-c"].includes(catName) ? "none" : "flex";
+    }
+  }
+  function formatDrillName(key) {
+    if (key.startsWith("cust_")) return key;
+    return key.replace(/-/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+  }
+  window.openAboutModal = () => {
+    const menu = document.getElementById("theme-menu");
+    if (menu) menu.classList.remove("open");
+    const m = document.getElementById("about-modal");
+    if (m) m.classList.add("open");
+  };
+  window.closeAboutModal = () => {
+    const m = document.getElementById("about-modal");
+    if (m) m.classList.remove("open");
+  };
+  function showSessionSummary() {
+    const summary = getSessionSummary();
+    const dVal = document.getElementById("sum-drills-val");
+    const bVal = document.getElementById("sum-balls-val");
+    const tVal = document.getElementById("sum-time-val");
+    if (dVal) dVal.textContent = summary.drills;
+    if (bVal) bVal.textContent = summary.balls;
+    if (tVal) tVal.textContent = formatDuration(summary.duration);
+    const modal = document.getElementById("summary-modal");
+    if (modal) modal.classList.add("open");
+  }
+  window.closeSummaryModal = () => {
+    const modal = document.getElementById("summary-modal");
+    if (modal) modal.classList.remove("open");
+  };
+
+  // js/runner.js
+  var isRunning = false;
+  var isPaused = false;
+  var currentCount = 0;
+  var targetCount = 0;
+  var remainingTime = 0;
+  var pauseTimer = null;
+  var countdownTimer = null;
+  var runTimer = null;
+  var startTimeout = null;
+  var activeDrillParams = null;
+  var activeDrillRandom = false;
+  var ui = {
+    overlay: document.getElementById("run-overlay"),
+    display: document.getElementById("run-display"),
+    label: document.getElementById("run-label"),
+    progress: document.getElementById("run-progress"),
+    btnPause: document.getElementById("btn-pause")
+  };
+  function startDrillSequence(drillName) {
+    const rawParams = currentDrills[drillName] ? currentDrills[drillName][selectedLevel] : null;
+    if (!rawParams) {
+      log("Drill data not found: " + drillName);
+      return;
+    }
+    const executableSteps = rawParams.filter((step) => {
+      const isActive = step[0][6];
+      return isActive === void 0 || isActive === 1;
+    });
+    if (executableSteps.length === 0) {
+      showToast("no active balls to play");
+      document.querySelectorAll(".btn-drill").forEach((b) => b.classList.remove("running"));
+      return;
+    }
+    activeDrillParams = executableSteps;
+    activeDrillRandom = !!currentDrills[drillName].random;
+    setLastPlayed(drillName);
+    updateLastPlayedHighlight();
+    toggleBodyScroll(true);
+    ui.overlay.classList.add("open");
+    let count = 4;
+    ui.display.textContent = count;
+    ui.label.textContent = "GET READY";
+    ui.btnPause.style.display = "none";
+    ui.progress.style.transition = "none";
+    ui.progress.style.strokeDashoffset = "0";
+    void ui.progress.offsetWidth;
+    requestAnimationFrame(() => {
+      ui.progress.style.transition = "stroke-dashoffset 4s linear";
+      ui.progress.style.strokeDashoffset = "565";
+    });
+    countdownTimer = setInterval(() => {
+      count--;
+      if (count > 0) {
+        ui.display.textContent = count;
+      } else {
+        clearInterval(countdownTimer);
+        ui.display.textContent = "GO!";
+        startTimeout = setTimeout(beginDrillExecution, 800);
+      }
+    }, 1e3);
+  }
+  function beginDrillExecution() {
+    isRunning = true;
+    freshStart = true;
+    classicFallback = false;
+    isPaused = false;
+    appStats.drills += 1;
+    localStorage.setItem("nova_stats", JSON.stringify(appStats));
+    updateStatsUI();
+    ui.btnPause.style.display = "block";
+    ui.btnPause.textContent = "PAUSE";
+    ui.btnPause.classList.remove("pulse-anim");
+    ui.label.textContent = "REMAINING";
+    ui.progress.style.transition = "none";
+    ui.progress.style.strokeDashoffset = "0";
+    if (runMode === "time") {
+      const tVal = document.getElementById("input-time").value;
+      remainingTime = parseInt(tVal);
+      ui.display.textContent = formatTime(remainingTime);
+      requestAnimationFrame(() => {
+        if (isRunning && !isPaused) {
+          ui.progress.style.transition = `stroke-dashoffset ${remainingTime}s linear`;
+          ui.progress.style.strokeDashoffset = "565";
+        }
+      });
+      runTimer = setInterval(() => {
+        if (!isPaused) {
+          remainingTime--;
+          ui.display.textContent = formatTime(remainingTime);
+          if (remainingTime <= 0) stopRun();
+        }
+      }, 1e3);
+    } else {
+      targetCount = parseInt(document.getElementById("input-reps").value) || 1;
+      currentCount = 0;
+      ui.display.textContent = targetCount;
+      ui.progress.style.transition = "stroke-dashoffset 0.5s ease";
+    }
+    runIteration();
+  }
+  var seamless = false;
+  var segSize = 0;
+  var stopRequested = false;
+  var watchdog = null;
+  var sawDrillStatus = false;
+  var freshStart = true;
+  var classicFallback = false;
+  function getPauseSec() {
+    const v = parseFloat(document.getElementById("input-pause").value);
+    return isNaN(v) ? 1 : v;
+  }
+  function getMaxBalls() {
+    const el = document.getElementById("input-maxballs");
+    const v = el ? parseInt(el.value) : NaN;
+    return isNaN(v) ? 7 : clamp(v, 1, 20);
+  }
+  function pickSegSize(n, max) {
+    if (n <= max) return n;
+    for (let s = max; s >= 1; s--) if (n % s === 0) return s;
+    return 1;
+  }
+  function chunk(arr, size) {
+    const out = [];
+    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+    return out;
+  }
+  function getBall1Offset() {
+    const el = document.getElementById("input-ball1");
+    const v = el ? parseFloat(el.value) : NaN;
+    return isNaN(v) ? 0 : clamp(v, 0, 1);
+  }
+  function compensateFreq(freqPercent, offsetSec) {
+    if (offsetSec <= 0) return freqPercent;
+    const bpm = 30 + clamp(freqPercent, 0, 100) * 0.6;
+    const interval = 60 / bpm - offsetSec;
+    if (interval <= 60 / 90) return 100;
+    return clamp((60 / interval - 30) / 0.6, 0, 100);
+  }
+  function buildRepetition() {
+    let sequence = activeDrillParams;
+    if (activeDrillRandom) {
+      sequence = [...activeDrillParams];
+      for (let i = sequence.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [sequence[i], sequence[j]] = [sequence[j], sequence[i]];
+      }
+    }
+    return sequence.map((stepOptions) => {
+      const chosenOption = stepOptions[Math.floor(Math.random() * stepOptions.length)];
+      const tempBall = [...chosenOption];
+      const scatter = tempBall[10] || 0;
+      if (scatter > 0) {
+        const currentDrop = tempBall[3];
+        const minDrop = currentDrop - scatter;
+        const steps = Math.floor(2 * scatter / 0.5);
+        if (steps > 0) {
+          const randomStep = Math.floor(Math.random() * (steps + 1));
+          tempBall[3] = clamp(minDrop + randomStep * 0.5, -10, 10);
+        }
+      }
+      return tempBall;
+    });
+  }
+  function countShots(rawBalls) {
+    return rawBalls.reduce((a, b) => a + (parseInt(b[5]) || 1), 0);
+  }
+  function updateRepsDisplay() {
+    if (runMode !== "reps") return;
+    ui.display.textContent = Math.max(0, targetCount - currentCount);
+    ui.progress.style.strokeDashoffset = 565 * Math.min(1, currentCount / targetCount);
+  }
+  function addStats(n) {
+    appStats.balls += n;
+    localStorage.setItem("nova_stats", JSON.stringify(appStats));
+    updateStatsUI();
+  }
+  function buildChangePacket(balls) {
+    const u = new Uint8Array(3 + balls.length * 24);
+    const v = new DataView(u.buffer);
+    v.setUint8(0, 132);
+    v.setUint16(1, 1 + balls.length * 24, true);
+    balls.forEach((ba, i) => u.set(ba, 3 + i * 24));
+    return u;
+  }
+  var sentQueue = [];
+  var repSegs = [];
+  var repsGenerated = 0;
+  var repsThisStart = 0;
+  function getLead() {
+    return 0;
+  }
+  function nextSegment() {
+    if (repSegs.length === 0) {
+      if (getPauseSec() > 0 && repsThisStart > 0) return null;
+      if (runMode === "reps" && repsGenerated >= targetCount) return null;
+      let rawBalls = buildRepetition();
+      if (streamShots) rawBalls = expandShots(rawBalls);
+      addStats(rawBalls.length);
+      repSegs = chunk(rawBalls, segSize);
+      repsGenerated++;
+      repsThisStart++;
+    }
+    const balls = repSegs.shift();
+    return { balls, left: countShots(balls), repEnd: repSegs.length === 0 };
+  }
+  var streamShots = false;
+  var lastSentShots = 0;
+  function drillHasVariableShots() {
+    return activeDrillParams.some((step) => new Set(step.map((o) => parseInt(o[5]) || 1)).size > 1);
+  }
+  function expandShots(rawBalls) {
+    const out = [];
+    rawBalls.forEach((b) => {
+      const n = parseInt(b[5]) || 1;
+      for (let i = 0; i < n; i++) {
+        const c = [...b];
+        c[5] = 1;
+        out.push(c);
+      }
+    });
+    return out;
+  }
+  function shotsInQueue() {
+    return sentQueue.reduce((a, q) => a + q.left, 0);
+  }
+  function fillQueue() {
+    const lead = getLead();
+    while (shotsInQueue() <= lead) {
+      const seg = nextSegment();
+      if (!seg) break;
+      const shots = countShots(seg.balls);
+      if (seg.balls.length !== segSize || shots !== lastSentShots) {
+        log("Andere Schusszahl -> Neustart");
+        restartRobot(800);
+        return;
+      }
+      sentQueue.push(seg);
+      sendPacket(buildChangePacket(seg.balls.map((b) => packBall(...b))));
+    }
+  }
+  function restartRobot(delayMs) {
+    stopRequested = true;
+    sendPacket([128, 1, 0, 1]);
+    pauseTimer = setTimeout(() => {
+      if (isRunning && !isPaused) runIteration();
+    }, delayMs);
+  }
+  async function runIteration() {
+    if (!isRunning || isPaused) return;
+    const pauseSec = getPauseSec();
+    const n = activeDrillParams.length;
+    const maxBalls = getMaxBalls();
+    const segmented = n > maxBalls;
+    if (classicFallback && segmented) log("Achtung: Drill zu lang fuer klassischen Modus");
+    seamless = (pauseSec === 0 || segmented) && !classicFallback;
+    stopRequested = false;
+    sawDrillStatus = false;
+    sentQueue = [];
+    repSegs = [];
+    repsThisStart = 0;
+    repsGenerated = currentCount;
+    updateRepsDisplay();
+    streamShots = seamless && drillHasVariableShots();
+    segSize = streamShots ? 1 : seamless && segmented ? pickSegSize(n, maxBalls) : n;
+    let first;
+    if (seamless) {
+      first = nextSegment();
+    } else {
+      const rawBalls = buildRepetition();
+      addStats(rawBalls.length);
+      first = { balls: rawBalls, left: countShots(rawBalls), repEnd: true };
+      if (runMode === "reps") currentCount++;
+    }
+    const offset = getBall1Offset();
+    if (offset > 0 && pauseSec === 0 && !freshStart) {
+      first.balls[0][4] = compensateFreq(first.balls[0][4], offset);
+    }
+    freshStart = false;
+    const balls = first.balls.map((b) => packBall(...b));
+    lastSentShots = countShots(first.balls);
+    if (seamless) {
+      sentQueue = [first];
+      log(streamShots ? `Start ENDLOS, Varianten mit unterschiedlichen Reps -> Schuss fuer Schuss` : segmented ? `Start ENDLOS, ${n} Baelle in ${n / segSize} Stuecken a ${segSize}` : `Start ENDLOS, ${n} Ball/Baelle pro Durchgang`);
+    } else {
+      log(`Start (mit Pause), ${n} Ball/Baelle`);
+    }
+    await sendPacket(buildPacket(balls, seamless ? 3 : 1, seamless ? 0 : 1));
+    clearTimeout(watchdog);
+    if (seamless) {
+      watchdog = setTimeout(() => {
+        if (isRunning && seamless && !sawDrillStatus) {
+          log("Keine Ball-Meldungen vom Roboter -> klassischer Modus");
+          seamless = false;
+          classicFallback = true;
+          restartRobot(800);
+        }
+      }, 1e4);
+    }
+  }
+  function handleNotify(bytes) {
+    if (!isRunning || isPaused || !seamless || stopRequested) return;
+    if (bytes.length < 11 || bytes[1] !== 5) return;
+    sawDrillStatus = true;
+    const head = sentQueue[0];
+    if (head) {
+      head.left--;
+      if (head.left <= 0) {
+        sentQueue.shift();
+        if (head.repEnd) {
+          if (runMode === "reps") {
+            currentCount++;
+            updateRepsDisplay();
+            if (currentCount >= targetCount) {
+              stopRequested = true;
+              setTimeout(() => stopRun(), 300);
+              return;
+            }
+          }
+          const pauseSec = getPauseSec();
+          if (pauseSec > 0) {
+            stopRequested = true;
+            setTimeout(() => {
+              if (!isRunning) return;
+              sendPacket([128, 1, 0, 1]);
+              pauseTimer = setTimeout(() => {
+                if (isRunning && !isPaused) runIteration();
+              }, pauseSec * 1e3);
+            }, 300);
+            return;
+          }
+        }
+      }
+    }
+    fillQueue();
+  }
+  function handleDone() {
+    if (!isRunning) return;
+    if (seamless) return;
+    if (runMode === "reps" && currentCount >= targetCount) {
+      stopRun();
+      return;
+    }
+    const pauseMs = getPauseSec() * 1e3;
+    if (!isPaused) {
+      pauseTimer = setTimeout(() => {
+        if (isRunning && !isPaused) runIteration();
+      }, pauseMs);
+    }
+  }
+  function togglePause() {
+    if (isPaused) {
+      isPaused = false;
+      ui.btnPause.textContent = "PAUSE";
+      ui.btnPause.classList.remove("pulse-anim");
+      freshStart = true;
+      if (runMode === "time") {
+        ui.progress.style.transition = `stroke-dashoffset ${remainingTime}s linear`;
+        ui.progress.style.strokeDashoffset = "565";
+      }
+      runIteration();
+    } else {
+      isPaused = true;
+      ui.btnPause.textContent = "RESUME";
+      ui.btnPause.classList.add("pulse-anim");
+      clearTimeout(pauseTimer);
+      const computedStyle = window.getComputedStyle(ui.progress);
+      const currentOffset = computedStyle.getPropertyValue("stroke-dashoffset");
+      ui.progress.style.transition = "none";
+      ui.progress.style.strokeDashoffset = currentOffset;
+      sendPacket([128, 1, 0, 1]);
+    }
+  }
+  function stopRun() {
+    isRunning = false;
+    isPaused = false;
+    clearInterval(countdownTimer);
+    clearInterval(runTimer);
+    clearTimeout(pauseTimer);
+    clearTimeout(startTimeout);
+    clearTimeout(watchdog);
+    seamless = false;
+    toggleBodyScroll(false);
+    ui.overlay.classList.remove("open");
+    document.querySelectorAll(".btn-drill").forEach((b) => b.classList.remove("running"));
+    sendPacket([128, 1, 0, 1]);
+    log("Drill Stopped");
+  }
+  function skipCountdown() {
+    if (isRunning) return;
+    if (!ui.overlay.classList.contains("open")) return;
+    clearInterval(countdownTimer);
+    clearTimeout(startTimeout);
+    ui.display.textContent = "GO!";
+    beginDrillExecution();
+  }
+  function formatTime(s) {
+    return `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`;
+  }
+  function buildPacket(balls, mode = 1, combos = 1) {
+    const b = new ArrayBuffer(7 + balls.length * 24);
+    const v = new DataView(b);
+    v.setUint8(0, 129);
+    v.setUint16(1, 4 + balls.length * 24, true);
+    v.setUint8(3, mode);
+    v.setUint16(4, combos, true);
+    v.setUint8(6, 0);
+    const u = new Uint8Array(b);
+    let off = 7;
+    balls.forEach((ba) => {
+      u.set(ba, off);
+      off += 24;
+    });
+    return u;
+  }
+
+  // js/bluetooth.js
+  var bleState = {
+    isConnected: false,
+    device: null,
+    writeChar: null,
+    handshakeState: "disconnected"
+  };
+  var writeLock = Promise.resolve();
+  var rxPending = new Uint8Array(0);
+  async function connectDevice() {
+    try {
+      log("Scanning...");
+      const device = await navigator.bluetooth.requestDevice({
+        filters: [{ services: [SERVICE_UUID] }],
+        optionalServices: [UUID_S]
+      });
+      bleState.device = device;
+      device.addEventListener("gattserverdisconnected", onDisconnect);
+      const server = await device.gatt.connect();
+      const service = await server.getPrimaryService(UUID_S);
+      const chars = await service.getCharacteristics();
+      const same = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
+      log("Gefunden: " + chars.map((c) => String(c.uuid).slice(-4)).join(", "));
+      for (let c of chars) {
+        if (same(c.uuid, UUID_N)) {
+          await c.startNotifications();
+          c.addEventListener("characteristicvaluechanged", onNotify);
+          log("Meldungen aktiv");
+        }
+        if (same(c.uuid, UUID_W)) bleState.writeChar = c;
+      }
+      if (bleState.writeChar) {
+        bleState.handshakeState = "handshake";
+        rxPending = new Uint8Array(0);
+        log("Anmeldung startet...");
+        sendPacket([7, 0, 0, 0]);
+        setTimeout(() => {
+          if (bleState.handshakeState !== "ready" && bleState.device) {
+            log("Anmeldung NICHT abgeschlossen (haengt bei: " + bleState.handshakeState + ")");
+            showToast("Anmeldung am Nova fehlgeschlagen");
+          }
+        }, 6e3);
+      } else {
+        log("Schreib-Kanal nicht gefunden");
+      }
+    } catch (e) {
+      log("Connect Error: " + e.message);
+    }
+  }
+  function disconnectDevice() {
+    if (bleState.device && bleState.device.gatt.connected) {
+      bleState.device.gatt.disconnect();
+    }
+  }
+  function onDisconnect() {
+    log("Verbindung getrennt (Status: " + bleState.handshakeState + ")");
+    bleState.isConnected = false;
+    bleState.device = null;
+    bleState.writeChar = null;
+    bleState.handshakeState = "disconnected";
+    log("Disconnected");
+    showToast("Disconnected");
+    document.dispatchEvent(new CustomEvent("connection-changed"));
+  }
+  function sendPacket(data) {
+    if (!bleState.writeChar) return Promise.reject("No Write Char");
+    const arr = new Uint8Array(data);
+    if (bleState.handshakeState === "ready" || arr[0] >= 128) {
+      const head = [...arr.slice(0, 7)].map((b) => b.toString(16).padStart(2, "0")).join(" ");
+      log(`TX ${arr.length}B: ${head}${arr.length > 7 ? " ..." : ""}`);
+    }
+    writeLock = writeLock.then(() => {
+      const c = bleState.writeChar;
+      const p = typeof c.writeValue === "function" ? c.writeValue(arr) : typeof c.writeValueWithResponse === "function" ? c.writeValueWithResponse(arr) : c.writeValueWithoutResponse(arr);
+      return p.catch((e) => log("TX Error: " + (e && e.message ? e.message : e)));
+    });
+    return writeLock;
+  }
+  function onNotify(e) {
+    const dv = e.target.value;
+    const buf = new Uint8Array(dv.buffer, dv.byteOffset, dv.byteLength).slice().buffer;
+    const hex = [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    if (bleState.handshakeState !== "ready") log("RX (" + bleState.handshakeState + ") " + hex.slice(0, 40));
+    if (bleState.handshakeState === "handshake") {
+      const piece = new Uint8Array(buf);
+      let msg = piece;
+      if (piece.length <= 18) {
+        const joined = new Uint8Array(rxPending.length + piece.length);
+        joined.set(rxPending);
+        joined.set(piece, rxPending.length);
+        rxPending = joined;
+        if (rxPending.length <= 18) {
+          log("Teilnachricht " + rxPending.length + " Bytes");
+          return;
+        }
+        msg = rxPending;
+      }
+      rxPending = new Uint8Array(0);
+      const td = new TextDecoder();
+      const str = td.decode(msg);
+      if (str.length > 18) {
+        const serial = str.slice(6, 18);
+        const code = str.slice(18);
+        let hashme = serial;
+        for (let i = 0; i < serial.length; i++) hashme += SALT[serial.charCodeAt(i) % 36];
+        hashme += code;
+        const hash = MD5(hashme);
+        const resp = new Uint8Array(3 + hash.length);
+        resp.set([8, 32, 0, 0]);
+        resp.set(new TextEncoder().encode(hash), 3);
+        sendPacket(resp);
+        bleState.handshakeState = "auth_1";
+      }
+    } else if (bleState.handshakeState === "auth_1") {
+      sendPacket([1, 0, 0]);
+      bleState.handshakeState = "auth_2";
+    } else if (bleState.handshakeState === "auth_2") {
+      sendPacket([2, 0, 0]);
+      bleState.handshakeState = "auth_3";
+    } else if (bleState.handshakeState === "auth_3") {
+      sendPacket([128, 1, 0, 0]);
+      bleState.handshakeState = "ready";
+      bleState.isConnected = true;
+      startSession();
+      log("Ready");
+      showToast("Connected");
+      document.dispatchEvent(new CustomEvent("connection-changed"));
+    }
+    if (bleState.handshakeState === "ready") log("RX " + hex);
+    handleNotify(new Uint8Array(buf));
+    if (hex.includes(MSG_DONE)) {
+      handleDone();
+    }
+  }
+  function packBall(us, ls, bh, dp, freq, reps) {
+    const b = new ArrayBuffer(24), v = new DataView(b);
+    us = clamp(us, 400, 7500);
+    ls = clamp(ls, 400, 7500);
+    const bh_f = (clamp(bh, -50, 100) + 50) / 150 * 50 - 20;
+    const dp_f = (clamp(dp, -10, 10) + 10) / 20 * 44 - 22;
+    const fr_f = clamp(freq, 0, 100) / 100 + 0.5;
+    v.setUint32(0, us, true);
+    v.setUint32(4, ls, true);
+    v.setFloat32(8, bh_f, true);
+    v.setFloat32(12, dp_f, true);
+    v.setFloat32(16, fr_f, true);
+    v.setUint32(20, reps, true);
+    return new Uint8Array(b);
+  }
+
+  // js/main.js
+  document.addEventListener("DOMContentLoaded", () => {
+    initData();
+    renderDrillButtons();
+    updateStatsUI();
+    setupEventListeners();
+    console.log("Nova Drill Control: Modules Loaded");
+  });
+  function setupEventListeners() {
+    const btnConnect = document.getElementById("btn-connect");
+    if (btnConnect) {
+      btnConnect.onclick = () => {
+        if (bleState.isConnected) {
+          disconnectDevice();
+          showSessionSummary();
+        } else connectDevice();
+      };
+    }
+    const inputPause = document.getElementById("input-pause");
+    if (inputPause) {
+      inputPause.onchange = (e) => {
+        let val = parseFloat(e.target.value);
+        if (isNaN(val)) val = 1;
+        if (val < 0) val = 0;
+        if (val > 5) val = 5;
+        e.target.value = val.toFixed(1);
+      };
+    }
+    const inputBall1 = document.getElementById("input-ball1");
+    if (inputBall1) {
+      try {
+        const saved = localStorage.getItem("nova_ball1_offset");
+        if (saved !== null) inputBall1.value = saved;
+      } catch (e) {
+      }
+      inputBall1.onchange = (e) => {
+        let val = parseFloat(e.target.value);
+        if (isNaN(val) || val < 0) val = 0;
+        if (val > 1) val = 1;
+        e.target.value = val.toFixed(2);
+        try {
+          localStorage.setItem("nova_ball1_offset", e.target.value);
+        } catch (err) {
+        }
+      };
+    }
+    const inputMax = document.getElementById("input-maxballs");
+    if (inputMax) {
+      try {
+        const saved = localStorage.getItem("nova_max_balls");
+        if (saved !== null) inputMax.value = saved;
+      } catch (e) {
+      }
+      inputMax.onchange = (e) => {
+        let val = parseInt(e.target.value);
+        if (isNaN(val) || val < 1) val = 1;
+        if (val > 20) val = 20;
+        e.target.value = val;
+        try {
+          localStorage.setItem("nova_max_balls", String(val));
+        } catch (err) {
+        }
+      };
+    }
+    const runDisplay = document.getElementById("run-display");
+    if (runDisplay) {
+      runDisplay.onclick = () => {
+        skipCountdown();
+      };
+    }
+    document.addEventListener("click", (e) => {
+      const menu = document.getElementById("theme-menu");
+      if (menu && menu.classList.contains("open") && !menu.contains(e.target) && !e.target.closest(".menu-btn")) {
+        menu.classList.remove("open");
+      }
+    });
+    document.addEventListener("drills-updated", () => {
+      renderDrillButtons();
+      updateDrillButtonStates();
+    });
+    document.addEventListener("stats-updated", () => {
+      updateStatsUI();
+    });
+    document.addEventListener("connection-changed", () => {
+      updateDrillButtonStates();
+      const editorModal = document.getElementById("editor-modal");
+      if (editorModal && editorModal.classList.contains("open")) {
+        const testBtns = document.querySelectorAll(".btn-act-test");
+        testBtns.forEach((b) => b.disabled = !bleState.isConnected);
+      }
+    });
+  }
+  window.toggleMenu = toggleMenu;
+  window.setTheme = setTheme;
+  window.switchTab = switchTab2;
+  window.setLevel = (lvl, btn) => {
+    setLevel(lvl);
+    document.querySelectorAll(".lvl-dot").forEach((d) => d.classList.remove("active"));
+    if (btn) btn.classList.add("active");
+  };
+  window.setMode = (mode, btn) => {
+    setMode(mode);
+    document.querySelectorAll(".mode-option").forEach((d) => d.classList.remove("active"));
+    if (btn) btn.classList.add("active");
+    const uiReps = document.getElementById("ui-reps");
+    const uiTime = document.getElementById("ui-time");
+    if (mode === "reps") {
+      uiReps?.classList.remove("hidden");
+      uiTime?.classList.add("hidden");
+    } else {
+      uiReps?.classList.add("hidden");
+      uiTime?.classList.remove("hidden");
+    }
+  };
+  window.resetStats = resetStats;
+  window.saveAsDefault = saveAsDefault;
+  window.resetToDefault = resetToDefault;
+  window.factoryReset = factoryReset;
+  window.exportCustomDrills = exportCustomDrills;
+  window.handleCSVUpload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const success = importCustomDrills(e.target.result);
+      if (success) {
+        renderDrillButtons();
+        toggleMenu();
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  };
+  window.openEditor = openEditor;
+  window.closeEditor = closeEditor;
+  window.saveDrillChanges = saveDrillChanges;
+  window.togglePause = togglePause;
+  window.stopRun = stopRun;
+  window.handleDrillClick = (key, btn) => {
+    if (!bleState.isConnected) {
+      showToast("Device not connected");
+      return;
+    }
+    document.querySelectorAll(".btn-drill").forEach((b) => b.classList.remove("running"));
+    btn.classList.add("running");
+    startDrillSequence(key);
+  };
+  var selectedDownloadCat = "custom-a";
+  window.handleDownloadDialog = () => {
+    const menu = document.getElementById("theme-menu");
+    if (menu) menu.classList.remove("open");
+    selectedDownloadCat = "custom-a";
+    const codeInput = document.getElementById("dl-code");
+    if (codeInput) codeInput.value = "";
+    const switchEl = document.getElementById("dl-cat-switch");
+    if (switchEl) {
+      Array.from(switchEl.children).forEach((c) => c.classList.remove("active"));
+      if (switchEl.children[0]) switchEl.children[0].classList.add("active");
+    }
+    const modal = document.getElementById("download-modal");
+    if (modal) {
+      modal.classList.add("open");
+      setTimeout(() => {
+        if (codeInput) codeInput.focus();
+      }, 100);
+    }
+  };
+  window.closeDownloadModal = () => {
+    const modal = document.getElementById("download-modal");
+    if (modal) modal.classList.remove("open");
+  };
+  window.selectDlCategory = (val, btn) => {
+    selectedDownloadCat = val;
+    if (btn && btn.parentElement) {
+      Array.from(btn.parentElement.children).forEach((c) => c.classList.remove("active"));
+      btn.classList.add("active");
+    }
+  };
+  window.performDownload = async () => {
+    const codeInput = document.getElementById("dl-code");
+    if (!codeInput) return;
+    const code = codeInput.value.trim().toUpperCase();
+    if (code.length !== 6) {
+      showToast("Invalid code (Must be 6 chars)");
+      return;
+    }
+    if (userCustomDrills[selectedDownloadCat].length >= 100) {
+      const catChar = selectedDownloadCat.split("-")[1].toUpperCase();
+      showToast(`Bank ${catChar} is full!`);
+      return;
+    }
+    showToast("Searching...");
+    try {
+      const data = await downloadDrill(code);
+      if (!data) {
+        showToast("Code not found");
+        return;
+      }
+      let name = data.name;
+      const existingNames = userCustomDrills[selectedDownloadCat].map((d) => d.name);
+      if (existingNames.includes(name)) {
+        name = `${name} (Imp)`;
+      }
+      const catChar = selectedDownloadCat.split("-")[1].toUpperCase();
+      const newKey = `cust_${catChar}_${name.replace(/\s+/g, "_")}_${Date.now()}`;
+      userCustomDrills[selectedDownloadCat].push({ name, key: newKey });
+      const newDrillObj = { 1: [], 2: [], 3: [], random: data.random };
+      newDrillObj[selectedLevel] = data.params;
+      currentDrills[newKey] = newDrillObj;
+      localStorage.setItem("custom_data", JSON.stringify(userCustomDrills));
+      saveDrillsToStorage();
+      renderDrillButtons();
+      window.closeDownloadModal();
+      const tabBtn = document.querySelector(`.tab-btn[onclick*="${selectedDownloadCat}"]`);
+      if (tabBtn) switchTab2(selectedDownloadCat, tabBtn);
+      showToast(`Imported to ${catChar}`);
+      toggleMenu();
+    } catch (e) {
+      console.error(e);
+      showToast("Download Error");
+    }
+  };
+})();
+
+</script>
+
+</body>
+</html>
