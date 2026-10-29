@@ -1152,9 +1152,6 @@ input[type="number"]:disabled { opacity: 0.5; cursor: not-allowed; color: var(--
                 <div class="control-pill">
                     <label>Pause (s)</label> <input type="number" id="input-pause" value="0.0" step="0.1">
                 </div>
-                <div class="control-pill" title="Nur bei Neustart: Ball 1 kommt ca. 0,26 s zu spät, dieser Wert wird abgezogen. Bei Pause 0 läuft der Roboter durch. 0 = aus.">
-                    <label>Ball 1 (s)</label> <input type="number" id="input-ball1" value="0.26" step="0.01" min="0" max="1">
-                </div>
         </div>
     </div>
 
@@ -2425,6 +2422,12 @@ input[type="number"]:disabled { opacity: 0.5; cursor: not-allowed; color: var(--
       showToast("No active balls");
       return;
     }
+    const mbEl = document.getElementById("input-maxballs");
+    const maxBalls = mbEl && parseInt(mbEl.value) > 0 ? parseInt(mbEl.value) : 7;
+    if (balls.length > maxBalls) {
+      balls.splice(maxBalls);
+      showToast(`Test: nur die ersten ${maxBalls} Baelle (ganzer Drill ueber Start)`);
+    }
     const totalLen = 7 + balls.length * 24;
     const buffer = new ArrayBuffer(totalLen);
     const view = new DataView(buffer);
@@ -2914,8 +2917,7 @@ Code: ${code}
     runIteration();
   }
   var seamless = false;
-  var shotCount = 0;
-  var shotsPerRep = 0;
+  var segSize = 0;
   var stopRequested = false;
   var watchdog = null;
   var sawDrillStatus = false;
@@ -2925,10 +2927,16 @@ Code: ${code}
     const v = parseFloat(document.getElementById("input-pause").value);
     return isNaN(v) ? 1 : v;
   }
+  function getMaxBalls() {
+    return 7;
+  }
+  function chunk(arr, size) {
+    const out = [];
+    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+    return out;
+  }
   function getBall1Offset() {
-    const el = document.getElementById("input-ball1");
-    const v = el ? parseFloat(el.value) : NaN;
-    return isNaN(v) ? 0 : clamp(v, 0, 1);
+    return 0.26;
   }
   function compensateFreq(freqPercent, offsetSec) {
     if (offsetSec <= 0) return freqPercent;
@@ -2983,26 +2991,111 @@ Code: ${code}
     balls.forEach((ba, i) => u.set(ba, 3 + i * 24));
     return u;
   }
+  var sentQueue = [];
+  var repSegs = [];
+  var repsGenerated = 0;
+  var repsThisStart = 0;
+  function getLead() {
+    return 1;
+  }
+  function nextSegment() {
+    if (repSegs.length === 0) {
+      if (getPauseSec() > 0 && repsThisStart > 0) return null;
+      if (runMode === "reps" && repsGenerated >= targetCount) return null;
+      let rawBalls = buildRepetition();
+      if (streamShots) rawBalls = expandShots(rawBalls);
+      addStats(rawBalls.length);
+      repSegs = chunk(rawBalls, segSize);
+      repsGenerated++;
+      repsThisStart++;
+    }
+    const balls = repSegs.shift();
+    return { balls, left: countShots(balls), repEnd: repSegs.length === 0 };
+  }
+  var streamShots = false;
+  var lastSentShots = 0;
+  function expandShots(rawBalls) {
+    const out = [];
+    rawBalls.forEach((b) => {
+      const n = parseInt(b[5]) || 1;
+      for (let i = 0; i < n; i++) {
+        const c = [...b];
+        c[5] = 1;
+        out.push(c);
+      }
+    });
+    return out;
+  }
+  function shotsInQueue() {
+    return sentQueue.reduce((a, q) => a + q.left, 0);
+  }
+  function fillQueue() {
+    const lead = getLead();
+    while (shotsInQueue() <= lead) {
+      const seg = nextSegment();
+      if (!seg) break;
+      const shots = countShots(seg.balls);
+      if (seg.balls.length !== segSize || shots !== lastSentShots) {
+        log("Andere Schusszahl -> Neustart");
+        restartRobot(800);
+        return;
+      }
+      sentQueue.push(seg);
+      sendPacket(buildChangePacket(seg.balls.map((b) => packBall(...b))));
+    }
+  }
+  function restartRobot(delayMs) {
+    stopRequested = true;
+    sendPacket([128, 1, 0, 1]);
+    pauseTimer = setTimeout(() => {
+      if (isRunning && !isPaused) runIteration();
+    }, delayMs);
+  }
   async function runIteration() {
     if (!isRunning || isPaused) return;
     const pauseSec = getPauseSec();
-    seamless = pauseSec === 0 && !classicFallback;
+    const n = activeDrillParams.length;
+    const maxBalls = getMaxBalls();
+    const segmented = n > maxBalls;
+    if (classicFallback && segmented) log("Achtung: Drill zu lang fuer klassischen Modus");
+    seamless = (pauseSec === 0 || segmented) && !classicFallback;
     stopRequested = false;
-    shotCount = 0;
     sawDrillStatus = false;
+    sentQueue = [];
+    repSegs = [];
+    repsThisStart = 0;
+    repsGenerated = currentCount;
     updateRepsDisplay();
-    const rawBalls = buildRepetition();
-    shotsPerRep = countShots(rawBalls);
+    streamShots = seamless;
+    segSize = seamless ? 1 : n;
+    let first;
+    if (seamless) {
+      first = nextSegment();
+    } else {
+      const rawBalls = buildRepetition();
+      addStats(rawBalls.length);
+      first = { balls: rawBalls, left: countShots(rawBalls), repEnd: true };
+      if (runMode === "reps") currentCount++;
+    }
     const offset = getBall1Offset();
     if (offset > 0 && pauseSec === 0 && !freshStart) {
-      rawBalls[0][4] = compensateFreq(rawBalls[0][4], offset);
+      first.balls[0][4] = compensateFreq(first.balls[0][4], offset);
     }
     freshStart = false;
-    const balls = rawBalls.map((b) => packBall(...b));
-    addStats(balls.length);
-    if (!seamless && runMode === "reps") currentCount++;
-    log(seamless ? `Start ENDLOS, ${balls.length} Ball/Baelle pro Durchgang` : `Start (mit Pause), ${balls.length} Ball/Baelle`);
+    const balls = first.balls.map((b) => packBall(...b));
+    lastSentShots = countShots(first.balls);
+    if (seamless) {
+      sentQueue = [first];
+      log(`Start ENDLOS, ${n} Ball/Baelle pro Durchgang, Schuss fuer Schuss (1 voraus)`);
+    } else {
+      log(`Start (mit Pause), ${n} Ball/Baelle`);
+    }
     await sendPacket(buildPacket(balls, seamless ? 3 : 1, seamless ? 0 : 1));
+    if (seamless) {
+      setTimeout(() => {
+        if (isRunning && seamless && !stopRequested && !isPaused) fillQueue();
+      }, 250);
+    }
     clearTimeout(watchdog);
     if (seamless) {
       watchdog = setTimeout(() => {
@@ -3010,10 +3103,7 @@ Code: ${code}
           log("Keine Ball-Meldungen vom Roboter -> klassischer Modus");
           seamless = false;
           classicFallback = true;
-          sendPacket([128, 1, 0, 1]);
-          setTimeout(() => {
-            if (isRunning && !isPaused) runIteration();
-          }, 800);
+          restartRobot(800);
         }
       }, 1e4);
     }
@@ -3022,32 +3112,37 @@ Code: ${code}
     if (!isRunning || isPaused || !seamless || stopRequested) return;
     if (bytes.length < 11 || bytes[1] !== 5) return;
     sawDrillStatus = true;
-    shotCount++;
-    if (shotCount < shotsPerRep) return;
-    shotCount = 0;
-    if (runMode === "reps") {
-      currentCount++;
-      updateRepsDisplay();
-      if (currentCount >= targetCount) {
-        stopRequested = true;
-        setTimeout(() => stopRun(), 300);
-        return;
+    const head = sentQueue[0];
+    if (head) {
+      head.left--;
+      if (head.left <= 0) {
+        sentQueue.shift();
+        if (head.repEnd) {
+          if (runMode === "reps") {
+            currentCount++;
+            updateRepsDisplay();
+            if (currentCount >= targetCount) {
+              stopRequested = true;
+              setTimeout(() => stopRun(), 300);
+              return;
+            }
+          }
+          const pauseSec = getPauseSec();
+          if (pauseSec > 0) {
+            stopRequested = true;
+            setTimeout(() => {
+              if (!isRunning) return;
+              sendPacket([128, 1, 0, 1]);
+              pauseTimer = setTimeout(() => {
+                if (isRunning && !isPaused) runIteration();
+              }, pauseSec * 1e3);
+            }, 300);
+            return;
+          }
+        }
       }
     }
-    const rawBalls = buildRepetition();
-    const shots = countShots(rawBalls);
-    if (shots !== shotsPerRep) {
-      log("Andere Ballzahl -> Neustart");
-      seamless = false;
-      sendPacket([128, 1, 0, 1]);
-      setTimeout(() => {
-        if (isRunning && !isPaused) runIteration();
-      }, 800);
-      return;
-    }
-    const balls = rawBalls.map((b) => packBall(...b));
-    addStats(balls.length);
-    sendPacket(buildChangePacket(balls));
+    fillQueue();
   }
   function handleDone() {
     if (!isRunning) return;
@@ -3149,16 +3244,21 @@ Code: ${code}
       device.addEventListener("gattserverdisconnected", onDisconnect);
       const server = await device.gatt.connect();
       const service = await server.getPrimaryService(UUID_S);
-      const chars = await service.getCharacteristics();
-      const same = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
-      log("Gefunden: " + chars.map((c) => String(c.uuid).slice(-4)).join(", "));
-      for (let c of chars) {
-        if (same(c.uuid, UUID_N)) {
-          await c.startNotifications();
-          c.addEventListener("characteristicvaluechanged", onNotify);
-          log("Meldungen aktiv");
-        }
-        if (same(c.uuid, UUID_W)) bleState.writeChar = c;
+      let notifyChar = null;
+      try {
+        notifyChar = await service.getCharacteristic(UUID_N);
+        bleState.writeChar = await service.getCharacteristic(UUID_W);
+      } catch (err) {
+        log("Direkte Suche fehlgeschlagen, durchsuche Liste...");
+        const chars = await service.getCharacteristics();
+        const same = (a, b) => String(a).toLowerCase() === String(b).toLowerCase();
+        notifyChar = chars.find((c) => same(c.uuid, UUID_N)) || null;
+        bleState.writeChar = chars.find((c) => same(c.uuid, UUID_W)) || null;
+      }
+      if (notifyChar) {
+        await notifyChar.startNotifications();
+        notifyChar.addEventListener("characteristicvaluechanged", onNotify);
+        log("Meldungen aktiv");
       }
       if (bleState.writeChar) {
         bleState.handshakeState = "handshake";
@@ -3202,7 +3302,11 @@ Code: ${code}
     }
     writeLock = writeLock.then(() => {
       const c = bleState.writeChar;
-      const p = typeof c.writeValue === "function" ? c.writeValue(arr) : typeof c.writeValueWithResponse === "function" ? c.writeValueWithResponse(arr) : c.writeValueWithoutResponse(arr);
+      const props = c.properties || {};
+      let p;
+      if (props.write && typeof c.writeValueWithResponse === "function") p = c.writeValueWithResponse(arr);
+      else if (props.writeWithoutResponse && typeof c.writeValueWithoutResponse === "function") p = c.writeValueWithoutResponse(arr);
+      else p = c.writeValue(arr);
       return p.catch((e) => log("TX Error: " + (e && e.message ? e.message : e)));
     });
     return writeLock;
@@ -3321,6 +3425,24 @@ Code: ${code}
         e.target.value = val.toFixed(2);
         try {
           localStorage.setItem("nova_ball1_offset", e.target.value);
+        } catch (err) {
+        }
+      };
+    }
+    const inputMax = document.getElementById("input-maxballs");
+    if (inputMax) {
+      try {
+        const saved = localStorage.getItem("nova_max_balls");
+        if (saved !== null) inputMax.value = saved;
+      } catch (e) {
+      }
+      inputMax.onchange = (e) => {
+        let val = parseInt(e.target.value);
+        if (isNaN(val) || val < 1) val = 1;
+        if (val > 20) val = 20;
+        e.target.value = val;
+        try {
+          localStorage.setItem("nova_max_balls", String(val));
         } catch (err) {
         }
       };
